@@ -1,7 +1,8 @@
 const inputField = document.getElementById("inputWords");
 const groupButton = document.getElementById("groupButton");
 const anagramOutput = document.getElementById("anagramOutput");
-const clearButton = document.getElementById("clearButton");
+const clearAnagramButton = document.getElementById("clearAnagram");
+const clearReviewButton = document.getElementById("clearButton");
 
 // add event listener for grouping anagrams
 groupButton.addEventListener("click", () => {
@@ -38,7 +39,19 @@ for (const group in anagramGroups) {
 });
 
 // clear view functionality
-clearButton.addEventListener("click", () => {
-    inputField.value  ="";
+clearButton.addEventListener("click" , () => {
+    inputField.value  = "";
     anagramOutput.innerHTML = "";
+});
+
+// clear review functionlity for interview questions
+clearReviewButton.addEventListener("click", () => {
+const questionLIst = document.getElementById("questionList");
+questionLIst.innerHTML = "";
+});
+
+clearAnagramButton.addEventListener("click", () => {
+    anagramOutput.innerHTML = ""; // clears anagram output
+    inputField.value = ""; // clears the input field
+
 });
