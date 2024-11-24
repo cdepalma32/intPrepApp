@@ -50,7 +50,6 @@ out/
 .stylelintcache
 
 # dotenv files
-.env
 .env.*.local
 
 # IDE/Editor-specific files
