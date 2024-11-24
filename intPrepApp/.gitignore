@@ -4,21 +4,78 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
 
-# Editor directories and files
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage
+*.lcov
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+.cache/
+.parcel-cache
+
+# Vite cache
+.vite/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm/yarn/pnpm files
+.npm
+.yarn-integrity
+.pnp.*
+
+# ESLint and Stylelint cache
+.eslintcache
+.stylelintcache
+
+# dotenv files
+.env
+.env.*.local
+
+# IDE/Editor-specific files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Test/build artifacts
+*.tgz
+node_modules/
+dist/
+dist-ssr/
+
+# Next.js, Gatsby, or similar unused directories
+.next/
+.cache/
+
+# FuseBox cache
+.fusebox/
+
+# Lerna files
+.lerna/
