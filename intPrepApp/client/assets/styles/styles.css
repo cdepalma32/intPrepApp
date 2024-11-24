@@ -1,0 +1,108 @@
+
+body {
+    /* font family, margin, padding, background color */
+    background-color: #bcb6c4;
+    font-family:'Times New Roman', Times, serif;
+    margin: 0;
+    padding: 0;
+    }
+    
+    
+    header {
+    /* background color, color, padding, text-align */
+    background-color: #513973;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    
+    
+    }
+    
+    
+    main {
+    /* padding */
+    padding: 20px;
+    
+    
+    }
+    
+    
+    footer {
+    /* text-align, padding, background-color,  color */
+    text-align: center;
+    padding: 10px;
+    background-color: #513973;
+    color: white;
+    
+    }
+    
+    
+    h1 {
+    /* margin */
+    margin: 0;
+    font-size: 24px;
+    
+    
+    }
+    
+    
+    #app {
+    max-width: 900px;
+    margin: 0;
+    padding:20px;
+    }
+    
+    
+    #anagramOutput {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+    }
+    
+    
+    #interviewPrep {
+    margin-top: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    }
+    
+    
+    #questionList {
+    list-style-type: none;
+    padding:0;
+    }
+    
+    
+    #clearReview {
+        font-weight: bold;
+        background-color: #2a1e3b;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        border-radius: 15px;
+    
+    
+    }
+    
+    
+    #clearReview:hover {
+    background-color: #9677c2;
+    
+    }
+    
+    #clearAnagram {
+        font-weight: bold;
+        background-color: #2a1e3b;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        border-radius: 15px;
+    }
+    
+    #clearAnagram:hover {
+        background-color: #9677c2;
+    }
