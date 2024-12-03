@@ -1,6 +1,6 @@
 const User = require('./User');
-const InterviewQuestions = require('./InterviewQuestions');
+const InterviewQuestion = require('./InterviewQuestions');
 const Anagram = require('./Anagram');
 const Topic = require('./Topic');
 
-module.exports = { User, InterviewQuestions, Anagram, Topic };
+module.exports = { User, InterviewQuestion, Anagram, Topic };

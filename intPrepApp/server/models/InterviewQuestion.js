@@ -5,15 +5,19 @@ const mongoose = require('mongoose');
 const interviewQuestionSchema = new mongoose.Schema({
     question: {
         type: String,
-        required: true,
+        required: true, // the question text
+    },
+    correctAnswer: {
+        type: String,
+        required: true, // the correct answer to the question
     },
     isAnswered: {
         type: Boolean,
-        default: false,
+        default: false, // indicates whether the question has been answered
     },
     dateAsked: {
         type: Date,
-        default: Date.now,
+        default: Date.now, // the date the question was created
     },
 });
 
