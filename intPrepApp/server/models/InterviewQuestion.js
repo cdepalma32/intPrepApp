@@ -10,6 +10,7 @@ const interviewQuestionSchema = new mongoose.Schema({
     correctAnswer: {
         type: String,
         required: true, // the correct answer to the question
+        trim: true,
     },
     isAnswered: {
         type: Boolean,
@@ -19,7 +20,7 @@ const interviewQuestionSchema = new mongoose.Schema({
         type: Date,
         default: Date.now, // the date the question was created
     },
-});
+}, { timestamps: true });
 
 const interviewQuestion = mongoose.model('InterviewQuestion', interviewQuestionSchema);
 

@@ -6,9 +6,11 @@ const topicSchema = new Schema({
         type: String, 
         required: true,
         unique: true,
+        trim: true,
     },
     description: { // for option to add a description for each topic
         type: String,
+        default: null, // optional field with no default value
     },
     interviewQuestions: [
         {

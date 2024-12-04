@@ -11,7 +11,7 @@ const anagramSchema = new mongoose.Schema({
         type: [String], // array of words that are anagrams
         required: true,
     },
-});
+}, { timestamps:true });
 
 const Anagram = mongoose.model('Anagram', anagramSchema);
 
