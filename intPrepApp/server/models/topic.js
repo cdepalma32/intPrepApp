@@ -23,9 +23,9 @@ const topicSchema = new Schema({
             type: Schema.Types.ObjectId, // reference to anagram model
             ref: 'Anagram',
         }
-    ]
+    ], 
+}, {timestamps: true});
 
-});
 
 const Topic = mongoose.model('Topic', topicSchema);
 
