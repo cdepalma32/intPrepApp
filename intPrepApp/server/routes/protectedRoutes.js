@@ -1,6 +1,6 @@
 // routes requiring authentication
 const router = require('express').Router();
-const { verifyToken } = require('../utils/auth'); // middleware for auth
+const { verifyToken } = require('../middleware/authMiddleware'); // middleware for auth
 const { getAllTopics } = require('../controllers/topicController'); 
 
 // Apply middleware to all protected routes
