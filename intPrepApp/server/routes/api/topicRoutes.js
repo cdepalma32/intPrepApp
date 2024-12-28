@@ -9,9 +9,6 @@ router.get('/', getAllTopics);
 // public GET a single Topic
 router.get('/:id', getTopicById);
 
-// protected ADD a new Topic
-router.get('/:id, getTopicById');
-
 // protected ADD a new topic
 router.post('/', verifyToken, createTopic);
 

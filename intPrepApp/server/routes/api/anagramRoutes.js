@@ -7,7 +7,7 @@ const { verifyToken } = require('../../utils/auth');
 router.get('/:topicId', getAnagrams);
 
 // protected SUBMIT an anagram answer / validate and store user-submitted anagram answers
-router.post('/submit', submitAnagram);
+router.post('/submit', verifyToken, submitAnagram);
 
 // protected ADD a new anagram / admin function
 router.post('/', verifyToken, createAnagram);
