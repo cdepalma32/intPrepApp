@@ -1,10 +1,10 @@
 // routes for managing CRUD operations and user interaction with interview questions
 const router = require('express').Router();
-const { getQuestions, submitAnswer, createQuestion, updateQuestion, deleteQuestion } = require('../../controllers/interviewController');
+const { getQuestion, submitAnswer, createQuestion, updateQuestion, deleteQuestion } = require('../../controllers/interviewController');
 const { verifyToken } = require('../../utils/auth');
 
 // public GET questions for a topic
-router.get('/:topicId', getQuestions);
+router.get('/:topicId', getQuestion);
 
 // protected SUBMIT an answer / validate and store user submitted answers
 router.post('/submit', verifyToken, submitAnswer);
