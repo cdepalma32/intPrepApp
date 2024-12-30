@@ -29,7 +29,7 @@ const submitAnagram = async (req, res) => {
                 { $inc: { score:10 } } // Example: increment user score
             );
         }
-        res.status(200).json({
+        res.status(201).json({
             message: isCorrect ? 'Correct answer!' : 'Incorrect answer!',
             isCorrect,
         });
@@ -45,7 +45,7 @@ const createAnagram = async (req, res) => {
         // logic to create an anagram
         res.status(201).json({ message: 'Anagram created successfully!'});
     } catch (error) {
-        res.status(500).json({ error: 'Failed to update anagram.'});
+        res.status(500).json({ error: 'Failed to create anagram.'});
     }
     };
 
@@ -61,9 +61,14 @@ const updateAnagram = async (req, res) => {
 const deleteAnagram = async (req, res) => {
     try {
         const { id} = req.params; // extract anagrm ID from URL
+        const anagram = await Anagram.findByIdAndDelete(id); // check if anagram exists
+        if (!anagram) {
+            return res.status(404).json({error: 'Anagram not found!'});
+        }
         // logic to delete an anagram
         res.status(200).json({ message: `Anagram ${id} deleted successfully!`});
-        } catch {
+        } catch (error) {
+            console.log(error); // logs the error
             res.status(500).json({ error: 'Failed to delete anagram.'});
         }
     };
