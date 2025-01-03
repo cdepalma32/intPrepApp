@@ -29,8 +29,19 @@ const verifyToken = (req, res, next) => {
     try {
         const decoded = decodeToken(token); // Use the verifyToken from auth.js
         req.user = decoded.data; //Atatch user info to the request
-        next();
+        // role based operation
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden: Admins only!' }); // forbidden
+        }
+        next(); // Proceed if authorized
     } catch (err) {
+        console.error('Token verification failed:', err.message); // logs error details
+
+        // handle expired tokens!
+        if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token expired. Please login again.' })
+        }
+
         res.status(403).json({message: 'Invalid or expired token.'});
     }
     };

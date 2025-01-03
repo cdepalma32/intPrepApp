@@ -1,23 +1,17 @@
-// Use ES module syntax for importing dependencies
-import dotenv from 'dotenv';
-import express from 'express';
-import connectDB from './config/connection'; // import the connect DB function
 
-// Load environment variables from .env file
-dotenv.config();
+// Use CommonJS syntax for imports
+require('dotenv').config(); // Load environment variables
+const express = require('express'); // Import express
+const connectDB = require('./config/connection'); // Import connectDB function
 
 // Create an Express app
 const app = express();
 
-
-// Connect to MongoDB using the connectDB function from connection.js
+// Connect to MongoDB
 connectDB();
 
-
-// example of express routes
-app.listen(process.env.PORT || 3001, () => {
-  console.log(`Server running on port ${process.env.PORT || 3001}`);
+// Example of express routes
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-
-
