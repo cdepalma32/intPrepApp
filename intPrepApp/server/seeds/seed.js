@@ -1,21 +1,25 @@
-// Importing models
+require('dotenv').config(); // load env
 const mongoose = require('mongoose');
+
+// Importing models
 const Topic = require('../models/Topic');
 const InterviewQuestion = require('../models/InterviewQuestion');
 const Anagram = require('../models/Anagram');
 const User = require('../models/User');
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/intprepapp', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-    .then(() => {
+// use the same connection string logic
+const connectionString = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/intprepapp';
+
+// Connect to MongoDB using environment variables
+async function connectDB() {
+    try {
+        await mongoose.connect(connectionString); // No deprecated options
         console.log('Connected to the database!');
-    })
-    .catch(err => {
-        console.log('Error connecting to the database', err);
-    });
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Exit process if connection fails
+    }
+}
 
 // Seed function
 async function seed() {
@@ -121,14 +125,22 @@ async function seed() {
             { username: 'testuser', email: 'test@example.com', password: 'password123' },
         ]);
         console.log(`Seeded ${users.length} users!`);
-
     } catch (err) {
         console.error('Error while seeding:', err);
-    } finally {
-        mongoose.connection.close();
-        console.log('Database connection closed.');
+    throw err; //rethrows error to handle it in main()
     }
 }
 
-// Run seed function
-seed();
+async function main() {
+    try {
+    await connectDB(); // connect to database
+    await seed(); // run seed function
+} catch (err) {
+    console.error('Unexpected error during seeding:', err);
+} finally {
+    await mongoose.connection.close(); // close DB connection
+    console.log('Database connection closed.');
+}
+}
+
+main();

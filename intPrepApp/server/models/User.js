@@ -1,6 +1,8 @@
 // stores the user's progress (which questions have been reviewed/which anagram groups a user has completed)
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require('validator'); // Import the validator package
+
 
 const userSchema = new mongoose.Schema({
     username: {type: String, required: true, unique: true, index: true },

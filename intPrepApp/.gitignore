@@ -27,6 +27,9 @@ node_modules/
 jspm_packages/
 .pnpm-debug.log*
 
+# Environment variables
+.env
+
 # Build outputs
 dist/
 build/
