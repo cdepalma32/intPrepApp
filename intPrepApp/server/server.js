@@ -3,9 +3,18 @@
 require('dotenv').config(); // Load environment variables
 const express = require('express'); // Import express
 const connectDB = require('./config/connection'); // Import connectDB function
+const routes = require('./routes');
+
 
 // Create an Express app
 const app = express();
+
+
+// JSON parsing middleware (requesting bodies)
+app.use(express.json());
+
+// register routes
+app.use(routes);
 
 // Connect to MongoDB
 connectDB();

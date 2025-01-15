@@ -9,7 +9,7 @@ router.get('/', getAllTopics);
 // public GET a single Topic
 router.get('/:id', getTopicById);
 
-// protected ADD a new topic
+// protected ADD/ create a new topic
 router.post('/', verifyToken, createTopic);
 
 // protected UPDATE an existing topic
@@ -17,3 +17,5 @@ router.put('/:id', verifyToken, updateTopic);
 
 // protected DELETE a topic
 router.delete('/:id', verifyToken, deleteTopic);
+
+module.exports = router;

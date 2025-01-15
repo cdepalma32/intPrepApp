@@ -1,10 +1,10 @@
 // central file to import and configure all API routes
 const router = require('express').Router();
-const userRoutes = require('./userRoutes');
-const protectedRoutes = require('./protectedRoutes');
-const topicRoutes = require('./topicRoutes');
-const anagramRoutes = require('./anagramRoutes');
-const interviewRoutes = require('./interviewRoutes');
+const userRoutes = require('../api/userRoutes');
+const protectedRoutes = require('../protectedRoutes');
+const topicRoutes = require('../api/topicRoutes');
+const anagramRoutes = require('../api/anagramRoutes');
+const interviewRoutes = require('../api/interviewRoutes');
 
 // add route models
 router.use('/users', userRoutes);
