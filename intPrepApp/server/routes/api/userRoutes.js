@@ -5,7 +5,7 @@ const {registerUser, loginUser, logoutUser, getUserProfile, updateUserProfile, d
 const { verifyToken, validateSignup } = require('../../middleware/authMiddleware');
 
 // POST /api/users/signup - Register a new User
-router.post('/signup', registerUser); // Handles user registration
+router.post('/signup', validateSignup, registerUser); // Handles user registration
 
 // POST /api/users/signin - Login a user
 router.post('/signin', loginUser);

@@ -7,7 +7,7 @@ const validator = require('validator'); // Import the validator package
 const userSchema = new mongoose.Schema({
     username: {type: String, required: true, unique: true, index: true },
     email: { type: String, required: true, unique:  true, index: true, validate: [validator.isEmail, 'Invalid email format'] },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     reviewedQuestions: [
         { type: mongoose.Schema.Types.ObjectId, ref: 'InterviewQuestion', default: []}
     ],
@@ -20,16 +20,20 @@ const userSchema = new mongoose.Schema({
 
 // password hashing pre-save middleware
 userSchema.pre('save' , async function(next) {
-    if (this.isNew || this.isModified('password')) {
-        try {
-        const saltRounds = 10;
-        this.password = await bcrypt.hash(this.password, saltRounds);
-        } catch(err) {
-    return next(err); // passes err to Mongoose's error handler
+        if (this.isModified("password")) {
+        // Prevent double hashing
+        const bcryptHashRegex = /^\$2[aby]\$\d{2}\$/; 
+        
+        if (!bcryptHashRegex.test(this.password)) {
+            console.log("Hashing password before saving...");
+            this.password = await bcrypt.hash(this.password,10);
+        } else {
+            console.log("Password is already hashed, skipping hashing...");
         }
     }
     next();
 });
+
 
 // method for password comparison
 userSchema.methods.isCorrectPassword = async function (password) {

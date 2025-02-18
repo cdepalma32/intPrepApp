@@ -5,35 +5,37 @@ const bcrypt = require('bcryptjs');
 // POST /api/users/register
 const registerUser = async (req, res) => {
     try {
-        const { username, email, password, role } = req.body;
+        let { username, email, password, role } = req.body;
+        email = email.toLowerCase().trim();
 
         // Validate input
-        if (
-            !username || typeof username !== 'string' || !username.trim() ||
-            !email || typeof email !== 'string' || !email.trim() ||
-            !password || typeof password !== 'string' || password.length < 6
-        ) {
-            return res.status(400).json({ success: false, error: 'Invalid input. Ensure all fields are provided with valid data.' });
+        if (!username || !email || !password) {
+            return res.status(400).json({ success: false, error: 'All fields are required.' });
         }
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        // Check if user exists
+        if (await User.findOne({ email })) {
             return res.status(400).json({ success: false, error: 'Email already in use.' });
         }
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Create & save user (password is hashed via pre-save middleware)
+        const user = new User({ username, email, password, role: role || 'user' });
+        await user.save();
 
-        // Create new user
-        const user = await User.create({
-            username,
-            email,
-            password: hashedPassword,
-            role: role || 'user' // Default role is 'user'
+        // Generate JWT token
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '2h' }
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully!',
+            user: { _id: user._id, username: user.username, email: user.email, role: user.role },
+            token
         });
 
-        res.status(201).json({ success: true, message: 'User registered successfully!', user });
     } catch (error) {
         console.error('Error registering user:', error.message);
         res.status(500).json({ success: false, error: 'Failed to register user.' });
@@ -43,31 +45,33 @@ const registerUser = async (req, res) => {
 // POST /api/users/login
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
-
-        // Validate input
+        let { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ success: false, error: 'Email and password are required.' });
         }
 
-        // Find user
-        const user = await User.findOne({ email });
-        if (!user) {
+        email = email.toLowerCase().trim();
+
+        // Find user & include password
+        const foundUser = await User.findOne({ email }).select('+password');
+        if (!foundUser) {
             return res.status(401).json({ success: false, error: 'Invalid credentials!' });
         }
 
-        // Check password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        // Compare passwords
+        if (!(await bcrypt.compare(password, foundUser.password))) {
             return res.status(401).json({ success: false, error: 'Invalid credentials!' });
         }
 
-        // Generate JWT
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
-        });
+        // Generate JWT token
+        const token = jwt.sign(
+            { id: foundUser._id, email: foundUser.email, role: foundUser.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '2h' }
+        );
 
         res.status(200).json({ success: true, message: 'User logged in successfully!', token });
+
     } catch (error) {
         console.error('Error logging in user:', error.message);
         res.status(500).json({ success: false, error: 'Failed to log in user.' });
@@ -75,20 +79,14 @@ const loginUser = async (req, res) => {
 };
 
 // POST /api/users/logout
-const logoutUser = async (req, res) => {
-    try {
-        res.status(200).json({ success: true, message: 'User logged out successfully!' });
-    } catch (error) {
-        console.error('Error logging out user:', error.message);
-        res.status(500).json({ success: false, error: 'Failed to log out user.' });
-    }
+const logoutUser = (req, res) => {
+    res.status(200).json({ success: true, message: 'User logged out successfully!' });
 };
 
 // GET /api/users/profile
 const getUserProfile = async (req, res) => {
     try {
-        // Fetch user profile from token
-        const user = await User.findById(req.user.id).select('-password'); // Exclude password
+        const user = await User.findById(req.user.id).select('-password');
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found.' });
         }
@@ -103,21 +101,18 @@ const getUserProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-
-        // Fetch the user
         const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found.' });
         }
 
-        // Update fields
         if (username) user.username = username;
         if (email) user.email = email;
-        if (password) user.password = await bcrypt.hash(password, 10); // Hash new password
+        if (password) user.password = password; // Hashing handled by pre-save middleware
 
-        // Save changes
         const updatedUser = await user.save();
-        res.status(200).json({ success: true, message: 'User profile updated successfully!', updatedUser });
+        res.status(200).json({ success: true, message: 'Profile updated successfully!', updatedUser });
+
     } catch (error) {
         console.error('Error updating profile:', error.message);
         res.status(500).json({ success: false, error: 'Failed to update profile.' });
@@ -128,26 +123,23 @@ const updateUserProfile = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
-
-        // Ensure valid user ID
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
+        if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ success: false, error: 'Invalid user ID.' });
         }
 
-        // Delete user
         const user = await User.findByIdAndDelete(userId);
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found.' });
         }
 
         res.status(200).json({ success: true, message: 'User deleted successfully!' });
+
     } catch (error) {
         console.error('Error deleting user:', error.message);
         res.status(500).json({ success: false, error: 'Failed to delete user.' });
     }
 };
 
-// Export all functions
 module.exports = {
     registerUser,
     loginUser,
