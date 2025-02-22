@@ -1,6 +1,6 @@
-
 // Use CommonJS syntax for imports
-require('dotenv').config(); // Load environment variables
+require('dotenv').config({ path: '../.env' }); // <-- Explicitly set path
+console.log("Using JWT Secret:", process.env.JWT_SECRET);
 const express = require('express'); // Import express
 const connectDB = require('./config/connection'); // Import connectDB function
 const routes = require('./routes');

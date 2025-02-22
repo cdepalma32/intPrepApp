@@ -12,6 +12,10 @@ router.post('/signin', loginUser);
 
 //POST /api/users/Logout - Logout the user
 router.post('/logout', logoutUser);
+    // method restriction - catches unsupported methods on /logout
+    router.all('/logout', (req, res) => {
+        res.status(405).json({ success: false, error: "Mehod not allowed.  Use POST instead." });
+    });
 
 // GET /api/users/profile - Get user profile (Protected)
 router.get('/profile', verifyToken, getUserProfile); // Fetches user details for authenticated users

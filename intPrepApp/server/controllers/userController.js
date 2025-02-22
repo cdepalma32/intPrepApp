@@ -46,15 +46,28 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         let { email, password } = req.body;
-        if (!email || !password) {
+
+        // check for missing email or password
+        if (!email && !password) {
             return res.status(400).json({ success: false, error: 'Email and password are required.' });
         }
+        if (!email || email.trim() === "") {
+            return res.status(400).json({ succes: false, error: 'Email is required. '});
+        }
+        if (!password || password.trim() === "") {
+            return res.status(400).json({ success: false, error: 'Password is required.' });
+        }
 
+        // Normalize & validate email format
         email = email.toLowerCase().trim();
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            return res.status(400).json({ success: false, error: 'Invalid email format. '});
+        }
 
         // Find user & include password
         const foundUser = await User.findOne({ email }).select('+password');
         if (!foundUser) {
+            // logs detailed non-existent email credentials for backend data
             return res.status(401).json({ success: false, error: 'Invalid credentials!' });
         }
 
@@ -80,7 +93,13 @@ const loginUser = async (req, res) => {
 
 // POST /api/users/logout
 const logoutUser = (req, res) => {
-    res.status(200).json({ success: true, message: 'User logged out successfully!' });
+    try {
+        res.status(200).json({ success: true, message: 'User logged out successfully!' });
+    } catch (error) {
+        console.log("Error logging out user:", error.message );
+        res.status(500).json({ success: false, error: "Failed to log out user." });
+    }
+
 };
 
 // GET /api/users/profile
