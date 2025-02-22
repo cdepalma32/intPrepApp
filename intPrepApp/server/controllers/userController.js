@@ -120,17 +120,59 @@ const getUserProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ success: false, error: 'User not found.' });
+
+        // Ensures a minimum of 1 field is provided for update
+        if (!username && !email && !password) {
+            return res.status(400).json({ success: false, error: "No update fields provided." });
         }
 
-        if (username) user.username = username;
-        if (email) user.email = email;
-        if (password) user.password = password; // Hashing handled by pre-save middleware
+        // Find a user in database
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, error: "User not found." });
+        }
 
+        // Update username (if provided)
+        if (username) {
+            if (username.trim()==="") { // ensures .trim() on username check
+                return res.status(400).json({ success: false, error: "Username cannot be empty." });
+            }
+            user.username=username;
+        }
+
+    // Update email (if provided)
+    if (email) {
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+                 return res.status(400).json({ success: false, error: "Invalid email format." });
+            }
+
+    // Skip DB query if email isn't changing
+    if (email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, error: "Email already in use." });
+        }
+    }
+        user.email = email;  
+    } 
+
+        // Update password (if provided)
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ success: false, error: "Password must be at least 6 characters long."});
+            }
+            user.password = password; // hashing handled by pre-save middleware
+        }
+
+        // Save updates
         const updatedUser = await user.save();
-        res.status(200).json({ success: true, message: 'Profile updated successfully!', updatedUser });
+        res.status(200).json({ success: true, message: 'Profile updated successfully!', 
+            user: {
+                _id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+            },
+        });
 
     } catch (error) {
         console.error('Error updating profile:', error.message);
