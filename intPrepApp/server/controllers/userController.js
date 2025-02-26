@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 // POST /api/users/register
 const registerUser = async (req, res) => {
     try {
+        console.log("Registering user:", req.body); // log incoming requests
         let { username, email, password, role } = req.body;
         email = email.toLowerCase().trim();
 
@@ -14,14 +15,16 @@ const registerUser = async (req, res) => {
         }
 
         // Check if user exists
-        if (await User.findOne({ email })) {
-            return res.status(400).json({ success: false, error: 'Email already in use.' });
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            console.log("User already exists:", email); // log duplicate
+            return res.status(400).json({ success: false, error: 'Email already in use.'})
         }
 
         // Create & save user (password is hashed via pre-save middleware)
         const user = new User({ username, email, password, role: role || 'user' });
         await user.save();
-
+        console.log("user successfully saved:", user); // log successful save
         // Generate JWT token
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },

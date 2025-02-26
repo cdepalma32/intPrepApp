@@ -1,26 +1,32 @@
-// Use CommonJS syntax for imports
-require('dotenv').config({ path: '../.env' }); // <-- Explicitly set path
-console.log("Using JWT Secret:", process.env.JWT_SECRET);
-const express = require('express'); // Import express
-const connectDB = require('./config/connection'); // Import connectDB function
-const routes = require('./routes');
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+
+const express = require("express");
+const connectDB = require("./config/connection");
+const routes = require("./routes");
+
+// Ensure .env variables are properly loaded
+if (!process.env.JWT_SECRET) {
+  console.error(" JWT_SECRET is missing. Check your .env file!");
+  process.exit(1);
+}
 
 
-// Create an Express app
+// Initialize Express app
 const app = express();
-
-
-// JSON parsing middleware (requesting bodies)
-app.use(express.json());
-
-// register routes
-app.use(routes);
+app.use(express.json()); // JSON parsing middleware
 
 // Connect to MongoDB
 connectDB();
 
-// Example of express routes
+// Register routes
+app.use(routes);
+
+// Log database connection
+console.log(" Using MongoDB URI:", process.env.MONGODB_URI);
+
+// Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(` Server running on http://localhost:${PORT}`);
 });
