@@ -81,3 +81,7 @@ dist-ssr/
 
 # Lerna files
 .lerna/
+
+
+# generateExpiredToken.js
+server/generateExpiredToken.js

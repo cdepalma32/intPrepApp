@@ -24,7 +24,7 @@ router.get('/profile', verifyToken, getUserProfile); // Fetches user details for
 router.put('/profile', verifyToken, updateUserProfile);
  
 // DELETE /api/users/profile - Delete user account (Protected)
-router.delete('/', verifyToken, deleteUser); // Delete's the user's account
+router.delete('/:userId', verifyToken, deleteUser); // Delete's the user's account
 
 module.exports = router;
 

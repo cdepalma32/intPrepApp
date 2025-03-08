@@ -164,6 +164,7 @@ const updateUserProfile = async (req, res) => {
             if (password.length < 6) {
                 return res.status(400).json({ success: false, error: "Password must be at least 6 characters long."});
             }
+            const salt = await bcrypt.genSalt(10); // generate salt
             user.password = password; // hashing handled by pre-save middleware
         }
 
@@ -187,10 +188,18 @@ const updateUserProfile = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
+
+        // Prevent user from deleting someon else's account
+        if(req.user.id !== userId) {
+            return res.status(403).json({ message: "forbidden: You can only delete your own account."})
+        }
+        
+        // Validate user ID format
         if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ success: false, error: 'Invalid user ID.' });
         }
 
+        // Find and delete user
         const user = await User.findByIdAndDelete(userId);
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found.' });

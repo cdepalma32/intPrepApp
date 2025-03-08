@@ -42,35 +42,30 @@ const verifyToken = (req, res, next) => {
     const authHeader = req.header("Authorization");
 
     if (!authHeader) {
-        return res.status(401).json({ message: "Token format is invalid." });
+        return res.status(401).json({ message: "Invalid token format." });
     }
 
     const parts = authHeader.split(" ");
-
+    console.log("🔍 Token Parts:", parts); // LOG TOKEN PARTS ARRAY
     // Ensure it's formatted correctly as "Bearer <token>"
     if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-        return res.status(401).json({ message: "Token format is invalid." });
+        return res.status(401).json({ message: "Invalid token format." });
     }
     const token = parts[1];
-
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
         req.user = decoded;
         next();
     } catch (err) {
-
         // Handle expired token - 1st in order
         if (err.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Token expired.  Please login again." });     
+            return res.status(401).json({ message: "Token expired. Please login again." });     
                 }
 
         // Handle malformed token only *if not expired*
         if (err.name === "JsonWebTokenError") {
-            return res.status(400).json({ message: "Malformed token. Please provide a valid token." });
+            return res.status(400).json({ message: "Invalid token format. Please provide a valid token." });
         }
-
-        // General invalid token case
         return res.status(403).json({ message: "Invalid or expired token." });
     }
 };
