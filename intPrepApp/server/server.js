@@ -1,5 +1,8 @@
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+console.log("SERVER STARTING");
+console.log("JWT_SECRET Loaded:", process.env.JWT_SECRET || "NOT LOADED!");
+
 
 const express = require("express");
 const connectDB = require("./config/connection");
@@ -29,4 +32,12 @@ console.log(" Using MongoDB URI:", process.env.MONGODB_URI);
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(` Server running on http://localhost:${PORT}`);
+});
+
+// Handle all unhandled errors
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED PROMISE REJECTION:", err);
 });

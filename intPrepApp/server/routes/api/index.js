@@ -11,6 +11,6 @@ router.use('/users', userRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/topics', topicRoutes);
 router.use('/anagrams', anagramRoutes);
-router.use('interview', interviewRoutes);
+router.use('/interview', interviewRoutes);
 
 module.exports = router;

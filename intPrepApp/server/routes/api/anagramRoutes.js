@@ -1,7 +1,7 @@
 // routes for managing CRUD operations and user interactions with anagrams
 const router = require('express').Router();
 const { getAnagrams, submitAnagram, createAnagram, updateAnagram, deleteAnagram } = require('../../controllers/anagramController');
-const { verifyToken } = require('../../utils/auth');
+const { verifyToken } = require('../../middleware/authMiddleware');
 
 // public GET anagrams for a topic
 router.get('/:topicId', getAnagrams);

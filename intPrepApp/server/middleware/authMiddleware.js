@@ -37,39 +37,43 @@ const validateSignup = [
     },
 ];
 
-// Token verification middleware
+
+// Verify Token Middleware
 const verifyToken = (req, res, next) => {
-    const authHeader = req.header("Authorization");
-
-    if (!authHeader) {
-        return res.status(401).json({ message: "Invalid token format." });
-    }
-
-    const parts = authHeader.split(" ");
-    console.log("🔍 Token Parts:", parts); // LOG TOKEN PARTS ARRAY
-    // Ensure it's formatted correctly as "Bearer <token>"
-    if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-        return res.status(401).json({ message: "Invalid token format." });
-    }
-    const token = parts[1];
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
+      console.log("Entered verifyToken middleware.");
+      console.log("Full Request Headers:", req.headers);
+  
+      const authHeader = req.headers.authorization;
+      console.log("Authorization Header:", authHeader);
+  
+      if (!authHeader) {
+        console.error("Missing Authorization Header");
+        return res.status(401).json({ message: "Authorization header missing" });
+      }
+  
+      const parts = authHeader.split(" ");
+      console.log("Token Parts:", parts);
+  
+      if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
+        console.error("Incorrect token format");
+        return res.status(401).json({ message: "Token format must be: Bearer <token>" });
+      }
+  
+      const token = parts[1].trim();
+      console.log("Token to verify:", token);
+      console.log("Using secret:", process.env.JWT_SECRET);
+  
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Token Decoded:", decoded);
+      req.user = decoded;
+      next();
     } catch (err) {
-        // Handle expired token - 1st in order
-        if (err.name === "TokenExpiredError") {
-            return res.status(401).json({ message: "Token expired. Please login again." });     
-                }
-
-        // Handle malformed token only *if not expired*
-        if (err.name === "JsonWebTokenError") {
-            return res.status(400).json({ message: "Invalid token format. Please provide a valid token." });
-        }
-        return res.status(403).json({ message: "Invalid or expired token." });
+      console.error("Error in verifyToken:", err);
+      return res.status(403).json({ message: "Invalid or expired token" });
     }
-};
-
+  };
+  
 
     // Admin authentication
     const requireAdmin = (req, res, next) => {

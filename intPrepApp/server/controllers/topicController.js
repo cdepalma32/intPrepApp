@@ -5,14 +5,19 @@ const Question = require('../models/InterviewQuestion'); // Related questions
 // POST /api/topics
 const createTopic = async (req, res) => {
     try {
+        console.log("createTopic Controller Hit");
+        console.log("Request User:", req.user);
         const { name, description } = req.body;
 
         // Validate input
         if (typeof name !== 'string' || !name.trim()) { 
             return res.status(400).json({ success: false, error: 'Topic name is required and must be a string.' });
         }
+        
+        // Ensures description is either null or a string -- if no description provided, remains null
+        const topicDescription = description && typeof description === 'string' ? description.trim() : null;
 
-        const newTopic = await Topic.create({ name, description });
+        const newTopic = await Topic.create({ name, description: topicDescription });
         res.status(201).json({ success: true, data: newTopic });
     } catch (error) {
         console.error('Error creating topic:', error);
