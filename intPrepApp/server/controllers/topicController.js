@@ -5,25 +5,35 @@ const Question = require('../models/InterviewQuestion'); // Related questions
 // POST /api/topics
 const createTopic = async (req, res) => {
     try {
-        console.log("createTopic Controller Hit");
-        console.log("Request User:", req.user);
         const { name, description } = req.body;
 
-        // Validate input
-        if (typeof name !== 'string' || !name.trim()) { 
-            return res.status(400).json({ success: false, error: 'Topic name is required and must be a string.' });
+        // Validate input - if name provided and a string
+        if (typeof name !== 'string') {
+            return res.status(400).json({ success: false, error: 'Topic name must be a string.' });
         }
         
-        // Ensures description is either null or a string -- if no description provided, remains null
-        const topicDescription = description && typeof description === 'string' ? description.trim() : null;
+        // Check if name is just empty or whitespace
+        if (!name.trim()) {
+            return res.status(400).json({ success: false, error: 'Topic name cannot be empty.' });
+        }
 
+        // Check for duplicate name
+            const existingTopic = await Topic.findOne({ name });
+                if (existingTopic) {
+                    return res.status(400).json({ success: false, error: 'A topic with that name already exists. '});
+                }
+
+        // Proceed with creation if validation passes
+        const topicDescription = description && typeof description === 'string' ? description.trim() : null;
         const newTopic = await Topic.create({ name, description: topicDescription });
+
         res.status(201).json({ success: true, data: newTopic });
     } catch (error) {
         console.error('Error creating topic:', error);
         res.status(500).json({ success: false, error: error.message });
-    }
-};
+        }
+    };
+
 
 // GET /api/topics
 const getAllTopics = async (req, res) => {

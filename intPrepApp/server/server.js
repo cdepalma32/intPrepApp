@@ -14,7 +14,6 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-
 // Initialize Express app
 const app = express();
 app.use(express.json()); // JSON parsing middleware
