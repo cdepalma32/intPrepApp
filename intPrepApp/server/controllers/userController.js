@@ -119,6 +119,23 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+
+// GET /api/users    GET ALL USERS
+const getAllUsers = async (req, res) => {
+    try{ 
+        // Fetch all users from the database
+        const users = await User.find({}).select('-password'); // exclude passwords
+        if (!users || users.length === 0) {
+            return res.status(404).json({ success: false, error: 'No users found.' });
+        }
+        res.status(200).json({ success: true, users });
+    } catch (error) {
+        console.error('Error retrieving all users:', error.message);
+    }
+        res.status(500).json({ success: false, error: 'Failed to retreive users.' });
+    };
+
+
 // PUT /api/users/profile
 const updateUserProfile = async (req, res) => {
     try {
@@ -219,5 +236,6 @@ module.exports = {
     logoutUser,
     getUserProfile,
     updateUserProfile,
-    deleteUser
+    deleteUser, 
+    getAllUsers
 };

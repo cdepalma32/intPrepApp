@@ -22,7 +22,11 @@ const createTopic = async (req, res) => {
                 if (existingTopic) {
                     return res.status(400).json({ success: false, error: 'A topic with that name already exists. '});
                 }
-
+        // 
+        if (description !== undefined && typeof description !== 'string') {
+            return res.status(400).json({ success: false, error: 'Description must be a string.'});
+        } 
+        
         // Proceed with creation if validation passes
         const topicDescription = description && typeof description === 'string' ? description.trim() : null;
         const newTopic = await Topic.create({ name, description: topicDescription });

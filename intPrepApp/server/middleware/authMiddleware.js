@@ -49,7 +49,7 @@ const verifyToken = (req, res, next) => {
   
       if (!authHeader) {
         console.error("Missing Authorization Header");
-        return res.status(401).json({ message: "Authorization header missing" });
+        return res.status(401).json({ message: 'Authorization header missing.' });
       }
   
       const parts = authHeader.split(" ");
@@ -57,7 +57,7 @@ const verifyToken = (req, res, next) => {
   
       if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
         console.error("Incorrect token format");
-        return res.status(401).json({ message: "Token format must be: Bearer <token>" });
+        return res.status(401).json({ message: 'Token format must be: Bearer <token>.' });
       }
   
       const token = parts[1].trim();
@@ -70,7 +70,12 @@ const verifyToken = (req, res, next) => {
       next();
     } catch (err) {
       console.error("Error in verifyToken:", err);
-      return res.status(403).json({ message: "Invalid or expired token" });
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token has expired' });
+      } else if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Token is invalid' });
+      }
+      return res.status(403).json({ message: ' Invalid or expired token' });
     }
   };
   
@@ -78,7 +83,7 @@ const verifyToken = (req, res, next) => {
     // Admin authentication
     const requireAdmin = (req, res, next) => {
         if (!req.user || req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Forbidden: Admins only!' });
+            return res.status(403).json({ message: 'Access denied: Admins only.' });
         }
         next();
     };

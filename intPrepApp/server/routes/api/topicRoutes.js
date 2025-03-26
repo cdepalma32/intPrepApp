@@ -2,7 +2,7 @@
 
 const router = require('express').Router();
 const { getAllTopics, getTopicById, createTopic, updateTopic, deleteTopic } = require('../../controllers/topicController');
-const { verifyToken } = require('../../middleware/authMiddleware');
+const { verifyToken, requireAdmin } = require('../../middleware/authMiddleware');
 
 // Log confirmation
 console.log(" topicRoutes.js loaded!");
@@ -11,19 +11,21 @@ console.log(" topicRoutes.js loaded!");
 // GET /api/topics - Get all topics (public)
 router.get('/', getAllTopics);
 
-// GET /api/topics/:id - Get a specific topic by ID (public)
-router.get('/:id', getTopicById);
 
 
     // PROTECTED ROUTES (require auth)
+
+// GET /api/topics/:id - Get a specific topic by ID (private)
+router.get('/:id', verifyToken, requireAdmin, getTopicById);
+
 // POST /api/topics - Create a new topic (protected)
-router.post('/', verifyToken, createTopic);
+router.post('/', verifyToken, requireAdmin, createTopic);
 
 // PUT /api/topics/:id - Update an existing topic (protected)
-router.put('/:id', verifyToken, updateTopic);
+router.put('/:id', verifyToken, requireAdmin, updateTopic);
 
 // DELETE /api/topics/:id - Delete a topic (protected)
-router.delete('/:id', verifyToken, deleteTopic);
+router.delete('/:id', verifyToken, requireAdmin, deleteTopic);
 
 
     // METHOD RESTRICTION HANDLER (optional)
