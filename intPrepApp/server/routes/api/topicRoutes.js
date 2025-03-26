@@ -7,24 +7,22 @@ const { verifyToken, requireAdmin } = require('../../middleware/authMiddleware')
 // Log confirmation
 console.log(" topicRoutes.js loaded!");
 
-    // PUBLIC ROUTES
-// GET /api/topics - Get all topics (public)
-router.get('/', getAllTopics);
+    // AUTHENTICATED ROUTES
+// GET /api/topics - Get all topics (authenticated user)
+router.get('/', verifyToken, getAllTopics);
+
+// GET /api/topics/:id - Get a specific topic by ID (authenticated user)
+router.get('/:id', verifyToken, getTopicById);
 
 
-
-    // PROTECTED ROUTES (require auth)
-
-// GET /api/topics/:id - Get a specific topic by ID (private)
-router.get('/:id', verifyToken, requireAdmin, getTopicById);
-
-// POST /api/topics - Create a new topic (protected)
+    // ADMIN ONLY ROUTES
+// POST /api/topics - Create a new topic (protected, admin)
 router.post('/', verifyToken, requireAdmin, createTopic);
 
-// PUT /api/topics/:id - Update an existing topic (protected)
+// PUT /api/topics/:id - Update an existing topic (protected, admin)
 router.put('/:id', verifyToken, requireAdmin, updateTopic);
 
-// DELETE /api/topics/:id - Delete a topic (protected)
+// DELETE /api/topics/:id - Delete a topic (protected, admin)
 router.delete('/:id', verifyToken, requireAdmin, deleteTopic);
 
 

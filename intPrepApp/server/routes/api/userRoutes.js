@@ -18,6 +18,8 @@ router.post('/logout', logoutUser);
         res.status(405).json({ success: false, error: "Method not allowed.  Use POST instead." });
     });
 
+
+    // AUTHENTICATED ROUTES
 // GET /api/users/profile - Get user profile (Protected)
 router.get('/profile', verifyToken, getUserProfile ); 
 
@@ -27,6 +29,7 @@ router.put('/profile', verifyToken, updateUserProfile  );
 // DELETE /api/users/profile - Delete user account (Protected)
 router.delete('/:userId', verifyToken, deleteUser);
 
+    // ADMIN ONLY ROUTES
 // GET /api/users - Get all users (Admin only)
 router.get('/', verifyToken, requireAdmin, getAllUsers);
 
