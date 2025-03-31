@@ -120,40 +120,48 @@ const updateTopic = async (req, res) => {
     }
 };
 
+
 // DELETE /api/topics/:id
 const deleteTopic = async (req, res) => {
     try {
         const { id } = req.params;
         const { cascade = true } = req.query;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) { 
-            return res.status(400).json({ success: false, error: 'Invalid topic ID.' });
+        console.log(`Attempting to delete topic with ID: ${id}, cascade: ${cascade}`);
+
+        // Check if the ID format is valid
+        if(!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, error: 'Invalid topic ID. '});
         }
 
-        // Find the topic first to ensure it exists before attempting to delete related records
+        // Find topic first to ensure it exists
         const topic = await Topic.findById(id);
-        if (!topic) {
-            return res.status(404).json({ success: false, error: 'Topic not found.' });
+        if(!topic) {
+            return res.status(404).json({ success: false, error: 'Topic not found. '});
         }
 
+        let details = {}; // store details about deletions
+
+        // If cascading delete is enabled, delete related questions
         if (cascade) {
-            console.log(`Cascading delete for topic ID: ${id}`);
-            // Perform cascading delete on related questions
             const deleteResult = await Question.deleteMany({ topic: id });
-            console.log(`Deleted ${deleteResult.deletedCount} related questions.`);
+            details.questionsDeleted = deleteResult.deletedCount; // How many questions were deleted
         }
 
-        // Now delete the topic
+        // Delete the topic
         const deletedTopic = await Topic.findByIdAndDelete(id);
         if (!deletedTopic) {
             return res.status(404).json({ success: false, error: 'Topic not found.' });
         }
-        res.status(200).json({ success: true, message: 'Topic deleted successfully!', details: `Deleted ${deleteResult.deletedCount} related questions.` });
+
+        details.message = 'Topic deleted successfully!';
+        res.status(200).json({ success: true, message: 'Topic deleted successfully!', details });
     } catch (error) {
         console.error(`Error deleting topic ID: ${id}`, error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 module.exports = {
     createTopic,
