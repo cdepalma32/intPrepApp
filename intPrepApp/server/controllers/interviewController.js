@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Question = require('../models/InterviewQuestion');
+const Topic = require('../models/Topic');
 
 const getQuestion = async (req, res) => {
     try {
@@ -50,7 +51,7 @@ const submitAnswer = async (req, res) => {
 const updateQuestion = async (req, res) => {
     try {
         const { id } = req.params;
-        const { question, topicId, correctAnswer } = req.body;
+        const { question, topic, correctAnswer } = req.body;
         // authentication check : ensure user is authenticate
         
         if (!req.user || req.user.role !== 'admin') {
@@ -58,7 +59,7 @@ const updateQuestion = async (req, res) => {
         }
         if ( 
             typeof question !== 'string' || !question.trim() ||
-            !mongoose.Types.ObjectId.isValid(topicId) || // ensures valid object id
+            !mongoose.Types.ObjectId.isValid(topic) || // ensures valid object id
             typeof correctAnswer !== 'string' || !correctAnswer.trim()
         ) {
             return res.status(400).json({ 
@@ -70,7 +71,7 @@ const updateQuestion = async (req, res) => {
         // logic to update a question
         const updatedQuestion = await Question.findByIdAndUpdate (
             id, // match id
-            { question, topicId, correctAnswer }, // update fields
+            { question, topic, correctAnswer }, // update fields
             { new: true, runValidators: true } // return updated doc & validate fields
         );
         if (!updatedQuestion) {
@@ -90,16 +91,21 @@ const updateQuestion = async (req, res) => {
                 return res.status(403).json({ success: false, error: 'Unauthorized access.' });
             }
     
-            const { question, topicId, correctAnswer } = req.body;
+            const { question, topic, correctAnswer } = req.body;
             if (
                 typeof question !== 'string' || !question.trim() ||
-               !mongoose.Types.ObjectId.isValid(topicId) ||
+               !mongoose.Types.ObjectId.isValid(topic) ||
                typeof correctAnswer !== 'string' || !correctAnswer.trim()
                         ) {
                             return res.status(400).json({ success: false, error: 'Invalid input types.'});
                         }            
-            // logic to create a new question
-            const newQuestion = await Question.create({ question, topicId, correctAnswer });
+            // logic to create a new question and associate it to the topic's InterviewQuestions array
+            const newQuestion = await Question.create({ question, topic, correctAnswer });
+            await Topic.findByIdAndUpdate(
+                topic,
+                { $push: { interviewQuestions: newQuestion._id } },
+                { new: true }
+            );
             res.status(201).json({ success: true, newQuestion });
         } catch (error) {
             console.error('Error creating question', error);

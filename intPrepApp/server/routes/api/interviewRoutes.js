@@ -7,7 +7,7 @@ const { verifyToken } = require('../../middleware/authMiddleware');
 router.get('/:topicId', getQuestion);
 
 // protected SUBMIT an answer / validate and store user submitted answers
-router.post('/submit', verifyToken, submitAnswer);
+router.post('/submit/:questionId', verifyToken, submitAnswer);
 
 // protected ADD a new question / admin function
 router.post('/', verifyToken, createQuestion);

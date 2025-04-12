@@ -47,7 +47,9 @@ const createTopic = async (req, res) => {
 // GET /api/topics
 const getAllTopics = async (req, res) => {
     try {
-        const topics = await Topic.find();
+        const topics = await Topic.find()
+        .populate('interviewQuestions')
+        .populate('anagrams');
         if (topics.length === 0) { 
             return res.status(404).json({ success: false, error: 'No topics found.' });
         }

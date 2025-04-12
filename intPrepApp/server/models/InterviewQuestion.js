@@ -16,12 +16,17 @@ const interviewQuestionSchema = new mongoose.Schema({
         type: Boolean,
         default: false, // indicates whether the question has been answered
     },
+    topic: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Topic',
+        required: true,
+    },
     dateAsked: {
         type: Date,
         default: Date.now, // the date the question was created
     },
 }, { timestamps: true });
 
-const interviewQuestion = mongoose.model('InterviewQuestion', interviewQuestionSchema);
+const InterviewQuestion = mongoose.model('InterviewQuestion', interviewQuestionSchema);
 
-module.exports = interviewQuestion;
+module.exports = InterviewQuestion;
