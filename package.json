@@ -1,0 +1,30 @@
+{
+  "name": "intprepapp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev-client\" \"npm run dev-server\"",
+    "dev-client": "npm --prefix client run dev",
+    "dev-server": "npm --prefix server run dev",
+    "build": "npm run build-client && npm run build-server",
+    "build-client": "npm --prefix client run build",
+    "build-server": "npm --prefix server run build",
+    "start": "npm run start-server",
+    "start-server": "npm --prefix server run start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.1",
+    "concurrently": "^7.6.0",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.13.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0"
+  }
+}

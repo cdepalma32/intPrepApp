@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anagram Grouping & Interview Prep</title>
+    <link rel="stylesheet" href="/intPrepApp/client/assets/styles/styles.css">
+</head>
+<body>
+    <!-- Add header element here-->
+    <header>
+        <h1> Interview Prep: Anagram Grouping</h1>
+    </header>
+
+    <div id="app">
+        <label for="inputWords">Enter words here (use a comma to separate each word):</label>
+        <input type="text" id="inputWords" placeholder="e.g. eat, tea, tan, ate, nat, bat">
+        <button id="groupButton">Group Anagrams</button>
+        <button id="clearAnagram">Clear Anagrams</button>
+
+        <div id="anagramOutput"></div>
+
+        <div id="interviewPrep">
+            <h2>Interview Questions Review</h2>
+            <ul id="questionList"></ul>
+            <button id="clearReview">Clear Review Progress</button>
+        </div>
+    </div>
+
+    <!-- Add footer element here-->
+    <footer>
+        <p>&copy; 2024 Anagram Grouping App</p>
+    </footer>
+
+    <!-- Include the client-side app script here -->
+    <script type="module" src="/client/src/main.jsx"></script>
+</body>
+</html>
