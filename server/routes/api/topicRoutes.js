@@ -4,9 +4,6 @@ const router = require('express').Router();
 const { getAllTopics, getTopicById, createTopic, updateTopic, deleteTopic } = require('../../controllers/topicController');
 const { verifyToken, requireAdmin } = require('../../middleware/authMiddleware');
 
-// Log confirmation
-console.log(" topicRoutes.js loaded!");
-
     // AUTHENTICATED ROUTES
 // GET /api/topics - Get all topics (authenticated user)
 router.get('/', verifyToken, getAllTopics);
