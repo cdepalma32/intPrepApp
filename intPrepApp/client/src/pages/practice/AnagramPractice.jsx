@@ -1,1 +1,0 @@
-// Activity-specific page (could eventually allow user to select difficulty or timed mode)

@@ -1,1 +1,0 @@
-// Manage personal info and settings - account actions
