@@ -1,7 +1,7 @@
 // routes for user functionality and authentication / user account management
 
 const router = require('express').Router();
-const {registerUser, loginUser, logoutUser, getUserProfile, updateUserProfile, deleteUser, getAllUsers } = require('../../controllers/userController');
+const {refreshTokenHandler, registerUser, loginUser, logoutUser, getUserProfile, updateUserProfile, deleteUser, getAllUsers } = require('../../controllers/userController');
 const { verifyToken, validateSignup, requireAdmin } = require('../../middleware/authMiddleware');
 
 // POST /api/users/signup - Register a new User
@@ -9,6 +9,9 @@ router.post('/signup', validateSignup, registerUser); // Handles user registrati
 
 // POST /api/users/signin - Login a user
 router.post('/signin', loginUser);
+
+// POST /api/users/refresh - refreshes a users' token
+router.post('/refresh', refreshTokenHandler);
 
 //POST /api/users/Logout - Logout the user
 router.post('/logout', logoutUser);

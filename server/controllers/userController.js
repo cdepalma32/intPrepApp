@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const {verifyRefreshToken, generateAccessToken, generateRefreshToken} = require('../utils/auth');
 
 // POST /api/users/register
 const registerUser = async (req, res) => {
@@ -26,17 +27,15 @@ const registerUser = async (req, res) => {
         await user.save();
         console.log("user successfully saved:", user); // log successful save
         // Generate JWT token
-        const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '2h' }
-        );
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
 
         res.status(201).json({
             success: true,
             message: 'User registered successfully!',
             user: { _id: user._id, username: user.username, email: user.email, role: user.role },
-            token
+            accessToken,
+            refreshToken
         });
 
     } catch (error) {
@@ -80,17 +79,58 @@ const loginUser = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign(
-            { id: foundUser._id, email: foundUser.email, role: foundUser.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '2h' }
-        );
+        const accessToken = generateAccessToken(foundUser);
+        const refreshToken = generateRefreshToken(foundUser);        
 
-        res.status(200).json({ success: true, message: 'User logged in successfully!', token });
+        res.status(200).json({
+            success: true,
+            message: 'User logged in successfully!',
+            accessToken,
+            refreshToken,
+            user: {
+              id: foundUser._id,
+              username: foundUser.username,
+              email: foundUser.email,
+              role: foundUser.role
+            }
+          });          
 
     } catch (error) {
         console.error('Error logging in user:', error.message);
         res.status(500).json({ success: false, error: 'Failed to log in user.' });
+    }
+};
+
+// POST /api/users/refresh
+const refreshTokenHandler = async (req, res) => {
+    try {
+        const {refreshToken} = req.body;
+
+        if (!refreshToken) {
+            return res.status(400).json({success: false, message: 'Refresh token missing.' });
+        }
+
+        const decoded = verifyRefreshToken(refreshToken);
+        if (!decoded) {
+            return res.status(403).json({ success: false, message: 'Invalid or expired refresh token.' });
+        }
+
+        const newAccessToken = generateAccessToken(decoded);
+        const newRefreshToken = generateRefreshToken(decoded); // Token rotation
+
+        return res.status(200).json({
+            success: true, 
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: {
+                id: decoded.id,
+                username: decoded.username,
+                role: decoded.role,
+            },
+        });
+    } catch (err) {
+        console.error('[REFRESH TOKEN ERROR]', err);
+        res.status(500).json({success: false, message: 'Internal server error.'});
     }
 };
 
@@ -233,6 +273,7 @@ const deleteUser = async (req, res) => {
 module.exports = {
     registerUser,
     loginUser,
+    refreshTokenHandler,
     logoutUser,
     getUserProfile,
     updateUserProfile,
