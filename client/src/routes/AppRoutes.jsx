@@ -9,27 +9,63 @@ import InterviewPractice from '../pages/practice/InterviewPractice';
 import LeetcodePractice from '../pages/practice/LeetcodePractice';
 import Topics from '../pages/Topics';
 import Dashboard from '../pages/Dashboard';
+import PrivateRoute from '../components/PrivateRoute'; 
 
 
 const AppRoutes = () => (
         <Routes>
-            {/* Auth routes */ }
-            <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="login" element={<Login />} /> 
-            <Route path="signup" element={<Signup />} />
-            <Route path="topics" element={<Topics />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            
-            {/* Practice routes */ }
-            <Route path="practice/anagram" element={<AnagramPractice />} />
-            <Route path="practice/interview" element={<InterviewPractice />} />
-            <Route path="practice/leetcode" element={<LeetcodePractice />} />
+                <Route path="/" element={<Layout />}>
+      {/* Public Routes */}
+      <Route index element={<Home />} />
+      <Route path="login" element={<Login />} />
+      <Route path="signup" element={<Signup />} />
 
-            {/* Catch-all */ }
-            <Route path="*" element={<NotFound />} />
-            </Route>
-            </Routes>
-    );
+      {/* Protected Routes */}
+      <Route
+        path="dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="topics"
+        element={
+          <PrivateRoute>
+            <Topics />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="practice/anagram"
+        element={
+          <PrivateRoute>
+            <AnagramPractice />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="practice/interview"
+        element={
+          <PrivateRoute>
+            <InterviewPractice />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="practice/leetcode"
+        element={
+          <PrivateRoute>
+            <LeetcodePractice />
+          </PrivateRoute>
+        }
+      />
 
-    export default AppRoutes;
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  </Routes>
+);
+
+export default AppRoutes;
