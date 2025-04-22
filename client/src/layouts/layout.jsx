@@ -2,29 +2,24 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 const Layout = () => {
     return (
-        <div className='app-wrapper'>
+        <div className="flex flex-col min-h-screen">
             {/* Shared Header */ }
-            <header>
-                <h1>IntPrepApp</h1>
-                { /* Navbar will go here */ }
-                </header>
+            <Header />
 
-                { /* Main Content based on route */ }
-                <main className="main-content">
-                    <Outlet /> {/* Injects child routes here */ }
-                    </main>
+            {/* Main routed content */ }
+                <main className="flex-1 p-4">
+                    <Outlet />
+                </main>
 
                     {/* Shared footer */ }
-                    <footer>
-                        <p>&copy; 2025 IntPrepApp</p>
-                        </footer>
+                    <Footer />
                         </div>
     );
 };
-
-{/* Later on, adding a different layout for Admin, ie, can be swapped */ }
 
 export default Layout;
