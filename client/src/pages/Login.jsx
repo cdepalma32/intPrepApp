@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "@/context/AuthContext";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 const Login = () => {
   // State for form imports
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,9 +36,14 @@ const Login = () => {
         throw new Error(data.message || "Login failed");
       }
 
-      // Success: do something - save tokens, update context, redirect
-      console.log("loggied in!", data);
-      // eg navigate("/dashboard");
+    login({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      user: data.user,
+    });
+
+    navigate("/dashboard");
+
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -69,7 +80,7 @@ const Login = () => {
         </div>
 
         {/* Error Message */}
-        {error && <p classname="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         {/* Submit */}
         <Button type="submit" className="w-full">
