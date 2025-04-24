@@ -10,10 +10,12 @@ import LeetcodePractice from '../pages/practice/LeetcodePractice';
 import Topics from '../pages/Topics';
 import Dashboard from '../pages/Dashboard';
 import PrivateRoute from '../components/PrivateRoute'; 
+import TestNav from "../pages/TestNav";
 
 
 const AppRoutes = () => (
         <Routes>
+          <Route path="/testnav" element={<TestNav />} />
                 <Route path="/" element={<Layout />}>
       {/* Public Routes */}
       <Route index element={<Home />} />
