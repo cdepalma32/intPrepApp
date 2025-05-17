@@ -21,7 +21,7 @@ const Login = () => {
     setError(""); // clear any previous error
 
     try {
-      const res = await fetch("http://localhost:3001/api/auth/login", {
+      const res = await fetch("http://localhost:5000/api/users/signin", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
