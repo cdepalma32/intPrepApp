@@ -3,7 +3,7 @@ require("dotenv").config();
 console.log("SERVER STARTING");
 console.log("JWT_SECRET Loaded:", process.env.JWT_SECRET || "NOT LOADED!");
 
-
+const cors = require("cors");
 const express = require("express");
 const connectDB = require("./config/connection");
 const routes = require("./routes");
@@ -16,7 +16,14 @@ if (!process.env.JWT_SECRET) {
 
 // Initialize Express app
 const app = express();
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
 app.use(express.json()); // JSON parsing middleware
+
+
 
 // Connect to MongoDB
 connectDB();

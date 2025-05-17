@@ -11,7 +11,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuTrigger,
-  DropdownMenuItem
+  DropdownMenuItem, 
+  DropdownMenuContent
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
