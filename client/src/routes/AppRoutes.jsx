@@ -7,6 +7,7 @@ import Signup from '../pages/Signup';
 import AnagramPractice from '../pages/practice/AnagramPractice';
 import InterviewPractice from '../pages/practice/InterviewPractice';
 import LeetcodePractice from '../pages/practice/LeetcodePractice';
+import FlashcardsPractice from '../pages/practice/FlashcardsPractice';
 import Topics from '../pages/Topics';
 import Dashboard from '../pages/Dashboard';
 import PrivateRoute from '../components/PrivateRoute'; 
@@ -55,6 +56,16 @@ const AppRoutes = () => (
           </PrivateRoute>
         }
       />
+
+      <Route
+        path="practice/flashcards"
+        element={
+          <PrivateRoute>
+            <FlashcardsPractice />
+          </PrivateRoute>
+        }
+      />
+
       <Route
         path="practice/leetcode"
         element={

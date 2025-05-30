@@ -13,12 +13,18 @@ import { Button } from "@/components/ui/button";
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+const randomEmoji = React.useMemo(() => {
+  const emojis = ["👋", "🚀", "💪", "🤓", "🌟", "🧠", "🎯", "⚡"];
+  return emojis[Math.floor(Math.random() * emojis.length)];
+}, []);
+
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
       {/* Welcome */}
       <h1 className="text-3xl font-bold text-center">
-        Welcome back, {user?.username || "User"} 👋
+        {randomEmoji} Welcome back, {user?.username || "User"}!
       </h1>
 
       {/* Progress */}
@@ -57,16 +63,17 @@ const Dashboard = () => {
         <Card>
           <CardContent className="p-6 space-y-4">
             <h2 className="font-semibold text-lg">🧠 Flashcards</h2>
-            <Button disabled>Coming Soon</Button>
-          </CardContent>
-        </Card>
+            <Button onClick={() => navigate("/practice/flashcards")}>Start</Button>
+        </CardContent>
+      </Card>
 
         <Card>
           <CardContent className="p-6 space-y-4">
             <h2 className="font-semibold text-lg">🧮 Leetcode Mode</h2>
-            <Button disabled>Coming Soon</Button>
-          </CardContent>
-        </Card>
+            <Button onClick={() => navigate("/practice/leetcode")}>Start</Button>
+        </CardContent>
+      </Card>
+
       </div>
 
       {/* CTA */}

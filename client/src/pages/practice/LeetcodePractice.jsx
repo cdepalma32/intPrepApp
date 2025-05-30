@@ -1,10 +1,9 @@
-import React from 'react';
+import React from "react";
 
 const LeetcodePractice = () => {
   return (
-    <div>
-      <h2>Leetcode Practice</h2>
-      {/* Add your content here */}
+    <div className="p-6 text-center text-muted-foreground">
+      Leetcode Mode is under construction. Stay tuned!
     </div>
   );
 };
