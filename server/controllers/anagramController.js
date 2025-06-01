@@ -2,15 +2,13 @@ const Anagram = require('../models/Anagram');
 const User = require('../models/User');
 
 const getAnagrams = async (req, res) => {
-    try {
-        const { topicId } = req.params;
-        const anagrams = await Anagram.find({ topic: topicId}); // query DB
-        res.status(200).json(anagrams); // return fetched anagrams
-    } catch (error) {
-        console.error('Error fetching anagrams:', error);
-        res.status(500).json({error: 'Failed to fetch anagrams.' });
-    }
-
+  try {
+    const anagrams = await Anagram.find().populate('topic', 'name');
+    res.status(200).json(anagrams);
+  } catch (err) {
+    console.error('Error fetching anagrams:', err);
+    res.status(500).json({ error: 'Failed to fetch anagrams' });
+  }
 };
 
 

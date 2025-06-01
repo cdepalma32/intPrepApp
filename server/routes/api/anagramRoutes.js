@@ -1,21 +1,20 @@
-// routes for managing CRUD operations and user interactions with anagrams
 const router = require('express').Router();
-const { getAnagrams, submitAnagram, createAnagram, updateAnagram, deleteAnagram } = require('../../controllers/anagramController');
+const {
+  getAnagrams,
+  submitAnagram,
+  createAnagram,
+  updateAnagram,
+  deleteAnagram,
+} = require('../../controllers/anagramController');
 const { verifyToken } = require('../../middleware/authMiddleware');
 
-// public GET anagrams for a topic
-router.get('/:topicId', getAnagrams);
+// Public GET route to fetch all anagrams
+router.get('/', getAnagrams);
 
-// protected SUBMIT an anagram answer / validate and store user-submitted anagram answers
+// Protected routes (as before)
 router.post('/submit', verifyToken, submitAnagram);
-
-// protected ADD a new anagram / admin function
 router.post('/', verifyToken, createAnagram);
-
-// protected UPDATE an existing anagram
 router.put('/:id', verifyToken, updateAnagram);
-
-// protected DELETE an anagram
-router.delete(':id', verifyToken, deleteAnagram);
+router.delete('/:id', verifyToken, deleteAnagram);
 
 module.exports = router;

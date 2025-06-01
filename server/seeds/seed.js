@@ -83,40 +83,40 @@ async function seed() {
 
         // Seed anagrams with topic references
         const anagrams = await Anagram.create([
-            // JavaScript
-            { word: 'Functionality', scrambled: 'tinoFyluaitcn', solution: 'Functionality', topic: topics[0]._id },
-            { word: 'Encapsulation', scrambled: 'slEncuaotnpia', solution: 'Encapsulation', topic: topics[0]._id },
-            { word: 'EventListener', scrambled: 'nteeviEeLtsnr', solution: 'EventListener', topic: topics[0]._id },
-            { word: 'Concurrency', scrambled: 'uyrccoeCnnn', solution: 'Concurrency', topic: topics[0]._id },
-            { word: 'Prototype', scrambled: 'ptoPryote', solution: 'Prototype', topic: topics[0]._id },
+           // JavaScript
+{ word: 'functionality', scrambled: 'tinofyluaitcn', solution: 'functionality', topic: topics[0]._id },
+{ word: 'encapsulation', scrambled: 'slencuaotnpia', solution: 'encapsulation', topic: topics[0]._id },
+{ word: 'event listener', scrambled: 'nteev ilretsen', solution: 'event listener', topic: topics[0]._id },
+{ word: 'concurrency', scrambled: 'ncnoyrurce', solution: 'concurrency', topic: topics[0]._id },
+{ word: 'prototype', scrambled: 'toyrpeotp', solution: 'prototype', topic: topics[0]._id },
 
-            // React
-            { word: 'Component', scrambled: 'oetnnCmpoo', solution: 'Component', topic: topics[1]._id },
-            { word: 'StateManagement', scrambled: 'eatSgntaMneamet', solution: 'StateManagement', topic: topics[1]._id },
-            { word: 'Lifecycle', scrambled: 'fLyceicle', solution: 'Lifecycle', topic: topics[1]._id },
-            { word: 'Reducer', scrambled: 'ceRrude', solution: 'Reducer', topic: topics[1]._id },
-            { word: 'Reconciliation', scrambled: 'iencnoeoiRcltai', solution: 'Reconciliation', topic: topics[1]._id },
+// React
+{ word: 'component', scrambled: 'tenopcmno', solution: 'component', topic: topics[1]._id },
+{ word: 'state management', scrambled: 'atset aanmegnet', solution: 'state management', topic: topics[1]._id },
+{ word: 'lifecycle', scrambled: 'clieyfelc', solution: 'lifecycle', topic: topics[1]._id },
+{ word: 'reducer', scrambled: 'ceredur', solution: 'reducer', topic: topics[1]._id },
+{ word: 'reconciliation', scrambled: 'ialotnconceiri', solution: 'reconciliation', topic: topics[1]._id },
 
-            // Node.js
-            { word: 'Asynchronous', scrambled: 'crnynooAhsous', solution: 'Asynchronous', topic: topics[2]._id },
-            { word: 'EventEmitter', scrambled: 'teeEvitnmtEr', solution: 'EventEmitter', topic: topics[2]._id },
-            { word: 'BufferStream', scrambled: 'tfeaSBrmufer', solution: 'BufferStream', topic: topics[2]._id },
-            { word: 'Middleware', scrambled: 'eidrleMdaw', solution: 'Middleware', topic: topics[2]._id },
-            { word: 'Cluster', scrambled: 'Clurts', solution: 'Cluster', topic: topics[2]._id },
+// Node.js
+{ word: 'asynchronous', scrambled: 'uosrsycuhoan', solution: 'asynchronous', topic: topics[2]._id },
+{ word: 'event emitter', scrambled: 'tivmetetreen', solution: 'event emitter', topic: topics[2]._id },
+{ word: 'buffer stream', scrambled: 'rfefub etrams', solution: 'buffer stream', topic: topics[2]._id },
+{ word: 'middleware', scrambled: 'emladrewiwl', solution: 'middleware', topic: topics[2]._id },
+{ word: 'cluster', scrambled: 'curlets', solution: 'cluster', topic: topics[2]._id },
 
-            // MongoDB
-            { word: 'Replication', scrambled: 'tlicopReaain', solution: 'Replication', topic: topics[3]._id },
-            { word: 'Aggregation', scrambled: 'ratgoeniAgga', solution: 'Aggregation', topic: topics[3]._id },
-            { word: 'Document', scrambled: 'uetmnDooc', solution: 'Document', topic: topics[3]._id },
-            { word: 'Sharding', scrambled: 'hiangSdr', solution: 'Sharding', topic: topics[3]._id },
-            { word: 'Indexes', scrambled: 'xniIseed', solution: 'Indexes', topic: topics[3]._id },
+// MongoDB
+{ word: 'replication', scrambled: 'anictieolpr', solution: 'replication', topic: topics[3]._id },
+{ word: 'aggregation', scrambled: 'gionatgraeg', solution: 'aggregation', topic: topics[3]._id },
+{ word: 'document', scrambled: 'mcuetnod', solution: 'document', topic: topics[3]._id },
+{ word: 'sharding', scrambled: 'idnsarhg', solution: 'sharding', topic: topics[3]._id },
+{ word: 'indexes', scrambled: 'xdeenis', solution: 'indexes', topic: topics[3]._id },
 
-            // Express
-            { word: 'Routing', scrambled: 'oRutgin', solution: 'Routing', topic: topics[4]._id },
-            { word: 'Middleware', scrambled: 'dMlareiwdle', solution: 'Middleware', topic: topics[4]._id },
-            { word: 'DynamicRoute', scrambled: 'tiRnaaumoyDce', solution: 'DynamicRoute', topic: topics[4]._id },
-            { word: 'HTTPHeaders', scrambled: 'DHpetrsaeTH', solution: 'HTTPHeaders', topic: topics[4]._id },
-            { word: 'Authentication', scrambled: 'iehntciAattounh', solution: 'Authentication', topic: topics[4]._id },
+// Express
+{ word: 'routing', scrambled: 'itgunor', solution: 'routing', topic: topics[4]._id },
+{ word: 'middleware', scrambled: 'emwdilarel', solution: 'middleware', topic: topics[4]._id },
+{ word: 'dynamic route', scrambled: 'cinmday teuor', solution: 'dynamic route', topic: topics[4]._id },
+{ word: 'http headers', scrambled: 'ttpd sehhaer', solution: 'http headers', topic: topics[4]._id },
+{ word: 'authentication', scrambled: 'ainuthnctiateo', solution: 'authentication', topic: topics[4]._id },
         ]);
         console.log(`Seeded ${anagrams.length} anagrams!`);
 

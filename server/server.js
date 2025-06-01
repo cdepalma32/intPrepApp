@@ -6,7 +6,7 @@ console.log("JWT_SECRET Loaded:", process.env.JWT_SECRET || "NOT LOADED!");
 const cors = require("cors");
 const express = require("express");
 const connectDB = require("./config/connection");
-const routes = require("./routes");
+const routes = require("./routes/api");
 
 // Ensure .env variables are properly loaded
 if (!process.env.JWT_SECRET) {
@@ -24,12 +24,11 @@ app.use(cors({
 app.use(express.json()); // JSON parsing middleware
 
 
-
 // Connect to MongoDB
 connectDB();
 
 // Register routes
-app.use(routes);
+app.use("/api", routes);
 
 // Log database connection
 console.log(" Using MongoDB URI:", process.env.MONGODB_URI);

@@ -6,7 +6,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "jest --verbose",
-    "build": "echo 'No build step for server'"
+    "build": "echo 'No build step for server'",
+    "seed": "node seeds/seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
