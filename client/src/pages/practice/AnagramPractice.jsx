@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-
 // Shuffle array utility
 const shuffleArray = (array) => {
   return [...array].sort(() => Math.random() - 0.5);
@@ -25,6 +24,9 @@ const AnagramPractice = () => {
   const [displayScramble, setDisplayScramble] = useState('');
   const [missedCount, setMissedCount] = useState(0);
 
+  const totalProgress = correctCount + missedCount;
+  const currentAnagram = anagrams[currentIndex];
+
   useEffect(() => {
     const fetchAnagrams = async () => {
       try {
@@ -34,7 +36,6 @@ const AnagramPractice = () => {
         const shuffled = shuffleArray(data);
         setAnagrams(shuffled);
 
-        // Set first scramble
         if (shuffled.length > 0) {
           setDisplayScramble(reshuffleWord(shuffled[0].solution));
         }
@@ -47,63 +48,65 @@ const AnagramPractice = () => {
     fetchAnagrams();
   }, []);
 
-  const currentAnagram = anagrams[currentIndex];
+  const checkAnswer = () => {
+    if (!currentAnagram || !currentAnagram.solution) return;
 
-const checkAnswer = () => {
-  if (!currentAnagram || !currentAnagram.solution) return;
-
-  const normalized = input.trim().toLowerCase();
-  const correct = currentAnagram.solution.toLowerCase();
-
-  if (normalized === correct) {
-    setFeedback('Correct!');
-    setCorrectCount((prev) => prev + 1);
-    setInput('');
-    setAttempts(0);
-
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
-
-    if (anagrams[nextIndex]) {
-      setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
+    if (totalProgress >= 25) {
+      setFeedback("✅ You've reached the max for this round!");
+      return;
     }
-  } else {
-    const nextAttempt = attempts + 1;
-    setAttempts(nextAttempt);
 
-    if (nextAttempt >= 4) {
-      setFeedback(`The correct answer was: ${currentAnagram.solution}`);
-      setMissedCount((prev) => prev + 1); // Track incorrect questions
+    const normalized = input.trim().toLowerCase();
+    const correct = currentAnagram.solution.toLowerCase();
 
-      setTimeout(() => {
-        const nextIndex = currentIndex + 1;
-        setCurrentIndex(nextIndex);
-        setAttempts(0);
-        setInput('');
+    if (normalized === correct) {
+      setFeedback('Correct!');
+      setCorrectCount((prev) => prev + 1);
+      setInput('');
+      setAttempts(0);
 
-        if (anagrams[nextIndex]) {
-          setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
-        }
-      }, 2000); // Delay to show answer
-    } else {
-      setFeedback(`Try again! (${nextAttempt}/4)`);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
 
-      // Reshuffle letters (but not into correct answer)
-      let newScramble = reshuffleWord(currentAnagram.solution);
-      while (newScramble === currentAnagram.solution) {
-        newScramble = reshuffleWord(currentAnagram.solution);
+      if (anagrams[nextIndex]) {
+        setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
       }
-      setDisplayScramble(newScramble);
-    }
-  }
-};
+    } else {
+      const nextAttempt = attempts + 1;
+      setAttempts(nextAttempt);
 
-  if (!anagrams.length || currentIndex >= anagrams.length) {
+      if (nextAttempt >= 4) {
+        setFeedback(`The correct answer was: ${currentAnagram.solution}`);
+        setMissedCount((prev) => prev + 1);
+
+        setTimeout(() => {
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          setAttempts(0);
+          setInput('');
+
+          if (anagrams[nextIndex]) {
+            setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
+          }
+        }, 2000);
+      } else {
+        setFeedback(`Try again! (${nextAttempt}/4)`);
+
+        let newScramble = reshuffleWord(currentAnagram.solution);
+        while (newScramble === currentAnagram.solution) {
+          newScramble = reshuffleWord(currentAnagram.solution);
+        }
+        setDisplayScramble(newScramble);
+      }
+    }
+  };
+
+  if (!anagrams.length || currentIndex >= anagrams.length || totalProgress >= 25) {
     return (
       <div className="text-center p-6">
         <h2 className="text-xl font-bold">🎉 All done!</h2>
         <p className="text-muted-foreground">
-          You solved {correctCount} / {anagrams.length}
+          You solved {correctCount} / {totalProgress} correctly
         </p>
       </div>
     );
@@ -118,16 +121,13 @@ const checkAnswer = () => {
           </h2>
 
           <p className="text-sm text-center text-muted-foreground">
-          Progress: {correctCount + missedCount} / {anagrams.length} 
-          {' '} | ✅ {correctCount} correct, ❌ {missedCount} missed
+            Progress: {totalProgress} / 25 | ✅ {correctCount} correct, ❌ {missedCount} missed
           </p>
-
 
           <p className="text-2xl font-bold text-center">
             {displayScramble || 'Loading...'}
           </p>
 
-          {/* Show category (topic) name */}
           {currentAnagram?.topic?.name && (
             <div className="flex justify-center">
               <span className="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full shadow">
