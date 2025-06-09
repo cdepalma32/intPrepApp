@@ -1,4 +1,4 @@
-# 🧠 IntPrepApp
+# IntPrepApp
 
 **Your Personalized Interview Prep App (MERN Stack)**
 
@@ -9,7 +9,7 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React + Vite + Tailwind CSS + ShadCN UI
 - **Backend**: Node.js + Express + MongoDB (Atlas)
@@ -19,19 +19,19 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## 🔐 Authentication & Security
+## Authentication & Security
 
 - **Access Tokens**: In-memory only (via React Context) for enhanced security
 - **Refresh Tokens**: Stored in localStorage, supports silent login and rotation
 - **Token Rotation**: Each refresh request issues new tokens and invalidates the old
 - **.env Protection**: Secrets excluded with `.gitignore` and rotated after early exposure
-- ✅ Verified in Insomnia + working in frontend login/signup flow
+- Verified in Insomnia + working in frontend login/signup flow
 
 ---
 
-## 🧩 ACTIVITY 1: Anagram Practice (✅ MVP Complete)
+## ACTIVITY 1: Anagram Practice ( MVP Complete)
 
-### ✅ Done
+### Done
 
 - Pulls randomized anagrams from backend (25 per session)
 - Tracks ✅ correct and ❌ missed attempts
@@ -40,7 +40,7 @@ Practice real-world anagrams, review common interview questions, and prep with c
 - Topic/category displayed for each anagram
 - End-of-session summary with motivational message
 
-### 🔜 In Progress
+### In Progress
 
 - Record scores to user profile
 - Track and update personal best
@@ -48,16 +48,16 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## 🔧 ACTIVITY 2: Interview Questions (Planned MVP)
+## ACTIVITY 2: Interview Questions (Planned MVP)
 
-### 🧠 Vision
+### Vision
 
 - Show one question at a time (e.g., “What is REST?”)
 - User reflects or types their answer
 - Click to reveal sample answer
 - Add thumbs-up/down for UX feedback (not scored)
 
-### 🔜 MVP Tasks
+### MVP Tasks
 
 - Scaffold `InterviewPractice.jsx`
 - Fetch questions by topic
@@ -68,15 +68,15 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## ⌨️ ACTIVITY 3: LeetCode Challenges (MVP In Progress)
+## ACTIVITY 3: LeetCode Challenges (MVP In Progress)
 
-### 🧠 Vision
+### Vision
 
 - Timed coding challenges (JS algorithms & data structures)
 - Built-in timer and code editor UI
 - Users can attempt and view solution afterward
 
-### 🔜 MVP Tasks
+### MVP Tasks
 
 - Scaffold `LeetcodePractice.jsx`
 - Add timer UI + textarea
@@ -87,13 +87,13 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## 👤 User Profiles
+## User Profiles
 
-### ✅ Done
+### Done
 
 - User creation, login, logout, token rotation fully functional
 
-### 🔜 MVP Tasks
+### MVP Tasks
 
 - Dashboard shows score summary and activity history
 - Record personal bests per activity
@@ -102,7 +102,7 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## ✅ AI-Assisted Unit Testing (Cursor AI)
+## AI-Assisted Unit Testing (Cursor AI)
 
 ### What I Did
 
@@ -112,7 +112,7 @@ I integrated **Cursor AI** to generate my first suite of Jest unit tests for hel
 - Set up a basic TDD workflow with minimal effort
 - Practice testing concepts as part of the development lifecycle
 
-### ✨ Tested Helpers
+### Tested Helpers
 
 #### 1. `isValidAnagram()`
 
@@ -173,7 +173,7 @@ describe('calculateScore', () => {
 });
 ```
 
-## 🚀 Deployment Plan
+## Deployment Plan
 
 - **Backend**: Hosted on Render (MongoDB Atlas included)
 - **Frontend**: Hosted on Vercel (auto-deploy from GitHub main branch)
@@ -181,30 +181,30 @@ describe('calculateScore', () => {
 - **CORS** configured for frontend-backend communication
 - **Token-based auth** verified and refreshed across hosted domains
 
-## 🧭 Roadmap
+## Roadmap
 
-### ✅ MVP Scope
+### MVP Scope
 
 - User auth with token rotation
 - Anagram activity with score tracking + feedback
 - AI-assisted unit test with Jest
 
-### 🔜 MVP In Progress
+### MVP In Progress
 
 - Interview + LeetCode scaffolds
 - Topic filtering + dynamic dashboard
 - Profile CRUD and stat tracking
 
-### 🚀 Post-MVP Ideas
+### Post-MVP Ideas
 
-- 🌐 OpenAI API (auto-eval or AI hints)
-- 🧠 Adaptive difficulty by user performance
-- 💬 Peer feedback or discussion area
-- 📊 Analytics: graphs showing improvement over time
+- OpenAI API (auto-eval or AI hints)
+- Adaptive difficulty by user performance
+- Peer feedback or discussion area
+- Analytics: graphs showing improvement over time
 
 ---
 
-## 💡 Why This Project?
+## Why This Project?
 
 I built this mainly because I wish I had something like this during my own interview journey -- something fun and engaging, as well as to challenge myself technically, learn secure full-stack practices, and show how I approach real-world problems as a developer — from authentication and architecture to UI/UX and testing.
 While there is still more to build and refine, I am proud of the foundation that I have laid -- and excited to continue expanding, improving and learning!
