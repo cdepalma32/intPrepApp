@@ -15,7 +15,7 @@ Practice real-world anagrams, review common interview questions, and prep with c
 - **Backend**: Node.js + Express + MongoDB (Atlas)
 - **Authentication**: JWT (Access + Refresh Tokens with Rotation)
 - **Deployment**: (Coming Soon) Render (Backend) + Vercel (Frontend)
-- **Testing**: Jest + AI-Generated Unit Tests (via Cursor AI)
+- **Testing**: Jest + AI-Generated Unit Tests (via Augment Code)
 
 ---
 
@@ -102,13 +102,14 @@ Practice real-world anagrams, review common interview questions, and prep with c
 
 ---
 
-## AI-Assisted Unit Testing (Cursor AI)
+## AI-Assisted Unit Testing (Augment Code)
 
 ### What I Did
 
-I integrated **Cursor AI** to generate my first suite of Jest unit tests for helper logic, expanding my testing toolkit beyond API tools like Insomnia. This allowed me to:
+I integrated **Augment Code** (VS code extension) to generate and validate Jest unit tests for core utility functions.
+This allowed me to:
 
-- Auto-generate and validate test cases for utility functions
+- Generate and validate test cases for core utility functions (e.g., `isValidAnagram()`)
 - Set up a basic TDD workflow with minimal effort
 - Practice testing concepts as part of the development lifecycle
 
@@ -148,7 +149,7 @@ describe('isValidAnagram', () => {
 });
 ```
 
-#### 2.`isValidAnagram()`
+#### 2. `calculateScore()`
 
 ```js
 // utils/calculateScore.js
