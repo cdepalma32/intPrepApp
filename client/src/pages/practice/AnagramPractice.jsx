@@ -3,14 +3,26 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-// Shuffle array utility
+// Utility: Shuffle array
 const shuffleArray = (array) => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
-// Shuffle letters of a string
-const reshuffleWord = (word) => {
-  return shuffleArray(word.split('')).join('');
+// Scramble while preserving original word lengths (for multi-word anagrams)
+const scrambleWithWordLengths = (phrase) => {
+  const words = phrase.trim().split(' ');
+  const lengths = words.map(word => word.length);
+  const allLetters = phrase.replace(/\s/g, '').split('');
+  const shuffled = shuffleArray(allLetters);
+
+  const scrambledWords = [];
+  let i = 0;
+  for (const len of lengths) {
+    scrambledWords.push(shuffled.slice(i, i + len).join(''));
+    i += len;
+  }
+
+  return scrambledWords.join(' ');
 };
 
 const AnagramPractice = () => {
@@ -37,7 +49,7 @@ const AnagramPractice = () => {
         setAnagrams(shuffled);
 
         if (shuffled.length > 0) {
-          setDisplayScramble(reshuffleWord(shuffled[0].solution));
+          setDisplayScramble(scrambleWithWordLengths(shuffled[0].solution)); 
         }
       } catch (err) {
         console.error('Failed to load anagrams', err);
@@ -48,36 +60,37 @@ const AnagramPractice = () => {
     fetchAnagrams();
   }, []);
 
-  const checkAnswer = () => {
-    if (!currentAnagram || !currentAnagram.solution) return;
+const checkAnswer = () => {
+  if (!currentAnagram || !currentAnagram.solution) return;
 
-    if (totalProgress >= 25) {
-      setFeedback("✅ You've reached the max for this round!");
-      return;
+  if (totalProgress >= 25) {
+    setFeedback("✅ You've reached the max for this round!");
+    return;
+  }
+
+  const normalize = (str) => str.replace(/\s/g, '').toLowerCase();
+  const normalizedInput = normalize(input);
+  const normalizedSolution = normalize(currentAnagram.solution);
+
+  if (normalizedInput === normalizedSolution) {
+    setFeedback('Correct!');
+    setCorrectCount(prev => prev + 1);
+    setInput('');
+    setAttempts(0);
+
+    const nextIndex = currentIndex + 1;
+    setCurrentIndex(nextIndex);
+
+    if (anagrams[nextIndex]) {
+      setDisplayScramble(scrambleWithWordLengths(anagrams[nextIndex].solution)); 
     }
-
-    const normalized = input.trim().toLowerCase();
-    const correct = currentAnagram.solution.toLowerCase();
-
-    if (normalized === correct) {
-      setFeedback('Correct!');
-      setCorrectCount((prev) => prev + 1);
-      setInput('');
-      setAttempts(0);
-
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-
-      if (anagrams[nextIndex]) {
-        setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
-      }
-    } else {
+  } else {
       const nextAttempt = attempts + 1;
       setAttempts(nextAttempt);
 
       if (nextAttempt >= 4) {
         setFeedback(`The correct answer was: ${currentAnagram.solution}`);
-        setMissedCount((prev) => prev + 1);
+        setMissedCount(prev => prev + 1);
 
         setTimeout(() => {
           const nextIndex = currentIndex + 1;
@@ -86,16 +99,18 @@ const AnagramPractice = () => {
           setInput('');
 
           if (anagrams[nextIndex]) {
-            setDisplayScramble(reshuffleWord(anagrams[nextIndex].solution));
+            setDisplayScramble(scrambleWithWordLengths(anagrams[nextIndex].solution)); 
           }
         }, 2000);
       } else {
         setFeedback(`Try again! (${nextAttempt}/4)`);
 
-        let newScramble = reshuffleWord(currentAnagram.solution);
+        let newScramble = scrambleWithWordLengths(currentAnagram.solution); 
+
         while (newScramble === currentAnagram.solution) {
-          newScramble = reshuffleWord(currentAnagram.solution);
+          newScramble = scrambleWithWordLengths(currentAnagram.solution);
         }
+
         setDisplayScramble(newScramble);
       }
     }

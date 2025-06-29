@@ -12,6 +12,25 @@ const getAnagrams = async (req, res) => {
 };
 
 
+function scrambleWithWordLengths(phrase) {
+  const words = phrase.trim().split(' ');
+  const lengths = words.map(word => word.length); // e.g., [5, 10]
+  const allLetters = phrase.replace(/\s/g, '').split(''); // all letters without spaces
+
+  // shuffle the letters
+  const shuffled = allLetters.sort(() => Math.random() - 0.5);
+
+  // slice by original word lengths
+  const scrambledWords = [];
+  let i = 0;
+  for (const len of lengths) {
+    scrambledWords.push(shuffled.slice(i, i + len).join(''));
+    i += len;
+  }
+
+  return scrambledWords.join(' ');
+}
+
 const submitAnagram = async (req, res) => {
     try {
         const { userId, anagramId, answer } = req.body; // extract necessary data from the request body
@@ -43,18 +62,19 @@ const submitAnagram = async (req, res) => {
 
 const createAnagram = async (req, res) => {
     try {
-        const { word, scrambled, solution, topic } = req.body; // extract anagram details from the request body
+        const { word, solution, topic } = req.body; // extract anagram details from the request body
         // logic to create an anagram
-        if (!word || !scrambled || !solution || !topic ) {
+        if (!word || !solution || !topic ) {
             return res.status(400).json({ error: 'All fields are required.'});
         }
+        const scrambled = scrambleWithWordLengths(word);
     // save to db
     const newAnagram = await Anagram.create({ word, scrambled, solution, topic });
-    res.status(201).json(newAnagram); // return created anagram
-} catch (error) {
+    res.status(201).json(newAnagram);
+  } catch (error) {
     console.error('Error creating anagram:', error);
-    res.status(500).json({ error: 'Failed to create anagram.'});
-}
+    res.status(500).json({ error: 'Failed to create anagram.' });
+  }
 };
     
 
