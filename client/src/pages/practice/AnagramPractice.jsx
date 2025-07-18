@@ -202,9 +202,14 @@ const AnagramPractice = () => {
             />
           </div>
 
-          <Button onClick={checkAnswer} className="w-full">
-            Check
-          </Button>
+            <div className="flex justify-center">
+            <Button onClick={checkAnswer}>
+                {attempts === 0 && 'Scramble 1/4'}
+                {attempts === 1 && 'Scramble 2/4'}
+                {attempts === 2 && 'Scramble 3/4'}
+                {attempts >= 3 && 'Unsure, give me the answer'}
+            </Button>
+            </div>
 
           {feedback && <p className="text-center">{feedback}</p>}
         </CardContent>
