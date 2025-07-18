@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config();
+require("dotenv").config(({ path: path.resolve(__dirname, ".env") }));
 console.log("SERVER STARTING");
 console.log("JWT_SECRET Loaded:", process.env.JWT_SECRET || "NOT LOADED!");
 

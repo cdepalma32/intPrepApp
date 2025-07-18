@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,8 +26,18 @@ const scrambleWithWordLengths = (phrase) => {
   return scrambledWords.join(' ');
 };
 
+// Generate hint like "________   ___"
+const getWordLengthHint = (solution) => {
+  return solution
+    .trim()
+    .split(' ')
+    .map(word => '_'.repeat(word.length))
+    .join('   ');
+};
+
 const AnagramPractice = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [anagrams, setAnagrams] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState('');
@@ -34,12 +45,13 @@ const AnagramPractice = () => {
   const [feedback, setFeedback] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [displayScramble, setDisplayScramble] = useState('');
+  const [hintPlaceholder, setHintPlaceholder] = useState('');
   const [missedCount, setMissedCount] = useState(0);
 
   const totalProgress = correctCount + missedCount;
   const currentAnagram = anagrams[currentIndex];
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchAnagrams = async () => {
       try {
         const res = await fetch('http://localhost:5000/api/anagrams');
@@ -49,7 +61,9 @@ const AnagramPractice = () => {
         setAnagrams(shuffled);
 
         if (shuffled.length > 0) {
-          setDisplayScramble(scrambleWithWordLengths(shuffled[0].solution)); 
+          const first = shuffled[0].solution;
+          setDisplayScramble(scrambleWithWordLengths(first));
+          setHintPlaceholder(getWordLengthHint(first));
         }
       } catch (err) {
         console.error('Failed to load anagrams', err);
@@ -60,31 +74,40 @@ const AnagramPractice = () => {
     fetchAnagrams();
   }, []);
 
-const checkAnswer = () => {
-  if (!currentAnagram || !currentAnagram.solution) return;
-
-  if (totalProgress >= 25) {
-    setFeedback("✅ You've reached the max for this round!");
-    return;
-  }
-
-  const normalize = (str) => str.replace(/\s/g, '').toLowerCase();
-  const normalizedInput = normalize(input);
-  const normalizedSolution = normalize(currentAnagram.solution);
-
-  if (normalizedInput === normalizedSolution) {
-    setFeedback('Correct!');
-    setCorrectCount(prev => prev + 1);
-    setInput('');
-    setAttempts(0);
-
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
-
-    if (anagrams[nextIndex]) {
-      setDisplayScramble(scrambleWithWordLengths(anagrams[nextIndex].solution)); 
+  useEffect(() => {
+    if (anagrams.length && (currentIndex >= anagrams.length || totalProgress >= 25)) {
+      const timer = setTimeout(() => navigate('/dashboard'), 5000);
+      return () => clearTimeout(timer);
     }
-  } else {
+  }, [anagrams, currentIndex, totalProgress, navigate]);
+
+  const checkAnswer = () => {
+    if (!currentAnagram || !currentAnagram.solution) return;
+
+    if (totalProgress >= 25) {
+      setFeedback("✅ You've reached the max for this round!");
+      return;
+    }
+
+    const normalize = (str) => str.replace(/\s/g, '').toLowerCase();
+    const normalizedInput = normalize(input);
+    const normalizedSolution = normalize(currentAnagram.solution);
+
+    if (normalizedInput === normalizedSolution) {
+      setFeedback('Correct!');
+      setCorrectCount(prev => prev + 1);
+      setInput('');
+      setAttempts(0);
+
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+
+      if (anagrams[nextIndex]) {
+        const nextSol = anagrams[nextIndex].solution;
+        setDisplayScramble(scrambleWithWordLengths(nextSol));
+        setHintPlaceholder(getWordLengthHint(nextSol));
+      }
+    } else {
       const nextAttempt = attempts + 1;
       setAttempts(nextAttempt);
 
@@ -99,29 +122,40 @@ const checkAnswer = () => {
           setInput('');
 
           if (anagrams[nextIndex]) {
-            setDisplayScramble(scrambleWithWordLengths(anagrams[nextIndex].solution)); 
+            const nextSol = anagrams[nextIndex].solution;
+            setDisplayScramble(scrambleWithWordLengths(nextSol));
+            setHintPlaceholder(getWordLengthHint(nextSol));
           }
         }, 2000);
       } else {
         setFeedback(`Try again! (${nextAttempt}/4)`);
 
-        let newScramble = scrambleWithWordLengths(currentAnagram.solution); 
-
+        let newScramble = scrambleWithWordLengths(currentAnagram.solution);
         while (newScramble === currentAnagram.solution) {
           newScramble = scrambleWithWordLengths(currentAnagram.solution);
         }
 
         setDisplayScramble(newScramble);
+        setHintPlaceholder(getWordLengthHint(currentAnagram.solution));
       }
     }
   };
 
-  if (!anagrams.length || currentIndex >= anagrams.length || totalProgress >= 25) {
+  if (anagrams.length && (currentIndex >= anagrams.length || totalProgress >= 25)) {
+    let message = '';
+    if (correctCount >= 20) message = "🔥 Incredible work!";
+    else if (correctCount >= 15) message = "💪 Great job!";
+    else if (correctCount >= 10) message = "👍 Nice effort!";
+    else message = "Keep practicing — you’ll get there!";
+
     return (
       <div className="text-center p-6">
-        <h2 className="text-xl font-bold">🎉 All done!</h2>
+        <h2 className="text-xl font-bold">{message}</h2>
         <p className="text-muted-foreground">
           You solved {correctCount} / {totalProgress} correctly
+        </p>
+        <p className="text-sm text-gray-500 mt-4">
+          Redirecting to dashboard in 5 seconds…
         </p>
       </div>
     );
@@ -139,9 +173,15 @@ const checkAnswer = () => {
             Progress: {totalProgress} / 25 | ✅ {correctCount} correct, ❌ {missedCount} missed
           </p>
 
-          <p className="text-2xl font-bold text-center">
+          <p className="text-2xl font-bold text-center tracking-wider">
             {displayScramble || 'Loading...'}
           </p>
+
+          {hintPlaceholder && (
+            <p className="text-sm text-muted-foreground text-center tracking-widest">
+              {hintPlaceholder}
+            </p>
+          )}
 
           {currentAnagram?.topic?.name && (
             <div className="flex justify-center">
@@ -151,16 +191,20 @@ const checkAnswer = () => {
             </div>
           )}
 
-          <input
-            type="text"
-            placeholder="Your guess..."
-            className="w-full border rounded px-4 py-2"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
-          />
+          <div className="space-y-1">
+            <input
+              type="text"
+              placeholder="Type the full phrase..."
+              className="w-full border rounded px-4 py-2"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && checkAnswer()}
+            />
+          </div>
 
-          <Button onClick={checkAnswer}>Check</Button>
+          <Button onClick={checkAnswer} className="w-full">
+            Check
+          </Button>
 
           {feedback && <p className="text-center">{feedback}</p>}
         </CardContent>
