@@ -42,6 +42,30 @@ export const AuthProvider = ({ children }) => {
             }
         };
     
+        const getValidAccessToken = async () => {
+            if (!accessToken) {
+                await refreshAccessToken();
+                return accessToken;
+            }
+
+            try{
+                const [, payloadBase64] = accessToken.split('.');
+                const payload = JSON.parse(atob(payloadBase64));
+                const isExpired = Date.now() >= payload.exp * 1000;
+
+                if (isExpired) {
+                    await refreshAccessToken();
+                    return accessToken;
+                }
+
+                return accessToken;
+            } catch (err) {
+                console.error(`[Token Decode Error]`, err);
+                await refreshAccessToken;
+                return accessToken;
+            }
+        };    
+
         const login = ({ accessToken, refreshToken, user }) => {
             setAccessToken(accessToken);
             setUser(user);
@@ -56,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, accessToken, login, logout, refreshAccessToken }}>
+        <AuthContext.Provider value={{ user, accessToken, login, logout, refreshAccessToken, getValidAccessToken }}>
             {children}
         </AuthContext.Provider>
     );

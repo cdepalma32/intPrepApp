@@ -36,7 +36,7 @@ const getWordLengthHint = (solution) => {
 };
 
 const AnagramPractice = () => {
-  const { user } = useAuth();
+  const { user, getValidAccessToken } = useAuth();
   const navigate = useNavigate();
   const [anagrams, setAnagrams] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,6 +50,51 @@ const AnagramPractice = () => {
 
   const totalProgress = correctCount + missedCount;
   const currentAnagram = anagrams[currentIndex];
+
+  const [roundSaved, setRoundSaved] = useState(false); // prevents duplicate saves
+
+
+    // Auto-submit progress when 25 attempts are reached
+  useEffect(() => {
+    if (totalProgress === 25 && !roundSaved) {
+      console.log("🎯 Total progress hit 25! Submitting round progress.");
+      saveProgress();
+      setRoundSaved(true);
+    }
+  }, [totalProgress, roundSaved]); // Save when totalProgress hits 25
+
+   // Save progress to backend
+  const saveProgress = async () => {
+    try {
+      const token = await getValidAccessToken();
+
+      const payload = {
+        date: new Date().toISOString().split('T')[0],
+        topic: currentAnagram?.topic?.name || 'General',
+        totalCorrect: correctCount,
+        totalAttempted: totalProgress,
+        roundCompleted: totalProgress >= 25, // round complete logic
+      };
+
+      const response = await fetch('http://localhost:5000/api/users/progress/anagram', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,   // uses valid token here
+      },
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Progress sent to server:', payload);
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update progress');
+      console.log('✅ Progress saved:', data);
+    } catch (error) {
+      console.error('❌ Error saving progress:', error.message);
+    }
+  };
+
 
    useEffect(() => {
     const fetchAnagrams = async () => {
@@ -98,6 +143,7 @@ const AnagramPractice = () => {
       setCorrectCount(prev => prev + 1);
       setInput('');
       setAttempts(0);
+      saveProgress();   //Save on correct answer
 
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -114,6 +160,7 @@ const AnagramPractice = () => {
       if (nextAttempt >= 4) {
         setFeedback(`The correct answer was: ${currentAnagram.solution}`);
         setMissedCount(prev => prev + 1);
+        saveProgress();    //Save after incorrect answer
 
         setTimeout(() => {
           const nextIndex = currentIndex + 1;

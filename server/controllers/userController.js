@@ -150,14 +150,15 @@ const getUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
         if (!user) {
-            return res.status(404).json({ success: false, error: 'User not found.' });
+            return res.status(404).json({ error: 'User not found.' });
         }
-        res.status(200).json({ success: true, user });
+        res.status(200).json(user); // Just return the user object
     } catch (error) {
         console.error('Error fetching user profile:', error.message);
-        res.status(500).json({ success: false, error: 'Failed to fetch user profile.' });
+        res.status(500).json({ error: 'Failed to fetch user profile.' });
     }
 };
+
 
 
 // GET /api/users    GET ALL USERS
@@ -221,7 +222,6 @@ const updateUserProfile = async (req, res) => {
             if (password.length < 6) {
                 return res.status(400).json({ success: false, error: "Password must be at least 6 characters long."});
             }
-            const salt = await bcrypt.genSalt(10); // generate salt
             user.password = password; // hashing handled by pre-save middleware
         }
 
@@ -270,6 +270,43 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// PATCH /api/users/progress/anagram
+const updateAnagramProgress = async (req, res) => {
+  console.log('[PATCH] /progress/anagram → incoming body:', req.body);
+
+  try {
+    const { date, topic, totalCorrect, totalAttempted, roundCompleted } = req.body;
+
+    if (!date || typeof totalAttempted !== 'number' || typeof totalCorrect !== 'number') {
+      return res.status(400).json({ success: false, error: "Missing required fields." });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found." });
+    }
+
+    // Always push new entry — don't overwrite
+    user.anagramProgress.push({
+      date,
+      topic,
+      totalCorrect,
+      totalAttempted,
+      roundCompleted
+    });
+    console.log("➕ New progress entry added.");
+
+    await user.save();
+    console.log('✅ Progress saved:', user.anagramProgress);
+
+    res.status(200).json({ success: true, message: "Progress updated successfully." });
+
+  } catch (err) {
+    console.error('❌ Error updating progress:', err.message);
+    res.status(500).json({ success: false, error: "Server error." });
+  }
+};
+
 module.exports = {
     registerUser,
     loginUser,
@@ -278,5 +315,6 @@ module.exports = {
     getUserProfile,
     updateUserProfile,
     deleteUser, 
-    getAllUsers
+    getAllUsers,
+    updateAnagramProgress
 };

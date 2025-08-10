@@ -5,18 +5,59 @@ const validator = require('validator'); // Import the validator package
 
 
 const userSchema = new mongoose.Schema({
-    username: {type: String, required: true, unique: true, index: true },
-    email: { type: String, required: true, unique:  true, index: true, validate: [validator.isEmail, 'Invalid email format'] },
-    password: { type: String, required: true, select: false },
-    role: { type: String, default: 'user'},
-    reviewedQuestions: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'InterviewQuestion', default: []}
-    ],
-    completedAnagrams: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'Anagram', default: []}
-    ],
-    isAdmin: { type: Boolean, default: false } 
-}, {timestamps: true}); 
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+    validate: [validator.isEmail, 'Invalid email format']
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false
+  },
+  role: {
+    type: String,
+    default: 'user'
+  },
+  reviewedQuestions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'InterviewQuestion',
+      default: []
+    }
+  ],
+  completedAnagrams: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Anagram',
+      default: []
+    }
+  ],
+  // tracks each user's daily anagram activity
+  anagramProgress: [
+    {
+      date: { type: String, required: true },        // e.g., "2025-07-18"
+      topic: { type: String },                       // e.g., "Node.js"
+      totalCorrect: { type: Number, default: 0 },
+      totalAttempted: { type: Number, default: 0 },
+      roundCompleted: { type: Boolean, default: false }
+    }
+  ],
+
+  isAdmin: {
+    type: Boolean,
+    default: false
+  }
+}, { timestamps: true });
+
 
 
 
