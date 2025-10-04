@@ -58,7 +58,33 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Individual anagram session schema
+const AnagramSessionSchema = new mongoose.Schema({
+  sessionId: { type: String, index: true },
+  topic: { type: String, default: 'All' },
+  startedAt: { type: Date, required: true },
+  finishedAt: { type: Date, required: true },
+  durationMs: { type: Number, required: true },
+  totalAttempted: { type: Number, required: true },
+  totalCorrect: { type: Number, required: true },
+  accuracyPct: { type: Number, required: true }, // 0..1
+  targetCount: { type: Number, default: 25 },
+}, { _id: false });
 
+// Aggregated stats schema
+const AnagramStatsSchema = new mongoose.Schema({
+  totalSetsCompleted: { type: Number, default: 0 },
+  bestAccuracy: { type: Number, default: 0 },
+  avgAccuracy: { type: Number, default: 0 },
+  bestAvgTimeMs: { type: Number, default: null },
+  avgTimeMs: { type: Number, default: null },
+}, { _id: false });
+
+// Append to main userSchema
+userSchema.add({
+  anagramSessions: { type: [AnagramSessionSchema], default: [] },
+  anagramStats: { type: AnagramStatsSchema, default: () => ({}) },
+});
 
 
 // password hashing pre-save middleware
