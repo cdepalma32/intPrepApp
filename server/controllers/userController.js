@@ -1,7 +1,8 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const {verifyRefreshToken, generateAccessToken, generateRefreshToken} = require('../utils/auth');
+const { verifyRefreshToken, generateAccessToken, generateRefreshToken } = require('../utils/auth');
 
 // POST /api/users/register
 const registerUser = async (req, res) => {
@@ -275,46 +276,103 @@ const updateAnagramProgress = async (req, res) => {
   console.log('[PATCH] /progress/anagram → incoming body:', req.body);
 
   try {
-    const { date, topic, totalCorrect, totalAttempted, roundCompleted } = req.body;
+    const { sessionId, topic, startedAt, finishedAt, totalAttempted, totalCorrect } = req.body;
 
-    if (!date || typeof totalAttempted !== 'number' || typeof totalCorrect !== 'number') {
-      return res.status(400).json({ success: false, error: "Missing required fields." });
+    if (!startedAt || !finishedAt || typeof totalAttempted !== 'number' || typeof totalCorrect !== 'number') {
+      return res.status(400).json({ success: false, error: 'Missing or invalid fields.' });
+    }
+    if (totalAttempted < 0 || totalCorrect < 0 || totalCorrect > totalAttempted) {
+      return res.status(400).json({ success: false, error: 'Invalid score totals.' });
     }
 
     const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ success: false, error: "User not found." });
-    }
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
 
-    // Always push new entry — don't overwrite
-    user.anagramProgress.push({
-      date,
+    const started = new Date(startedAt);
+    const finished = new Date(finishedAt);
+    const durationMs = finished - started;
+    const accuracyPct = totalAttempted > 0 ? totalCorrect / totalAttempted : 0;
+
+    const newSession = {
+      sessionId: sessionId || new mongoose.Types.ObjectId().toString(),
       topic,
-      totalCorrect,
+      startedAt: started,
+      finishedAt: finished,
+      durationMs,
       totalAttempted,
-      roundCompleted
-    });
-    console.log("➕ New progress entry added.");
+      totalCorrect,
+      accuracyPct,
+      targetCount: 25,
+    };
+
+    user.anagramSessions.push(newSession);
+
+    // rollups
+    const sessions = user.anagramSessions;
+    const totalSets = sessions.length;
+    const accs  = sessions.map(s => s.accuracyPct || 0);
+    const times = sessions.map(s => s.durationMs).filter(Boolean);
+
+    const bestAccuracy = accs.length ? Math.max(...accs) : 0;
+    const avgAccuracy  = accs.length ? accs.reduce((a,b)=>a+b,0) / accs.length : 0;
+    const bestAvgTimeMs = times.length ? Math.min(...times) : null;
+    const avgTimeMs     = times.length ? Math.round(times.reduce((a,b)=>a+b,0) / times.length) : null;
+
+    user.anagramStats = {
+      totalSetsCompleted: totalSets,
+      bestAccuracy,
+      avgAccuracy,
+      bestAvgTimeMs,
+      avgTimeMs,
+    };
 
     await user.save();
-    console.log('✅ Progress saved:', user.anagramProgress);
 
-    res.status(200).json({ success: true, message: "Progress updated successfully." });
-
+    return res.status(200).json({
+      success: true,
+      message: 'Anagram progress updated successfully!',
+      stats: user.anagramStats,
+      latestSession: newSession,
+    });
   } catch (err) {
-    console.error('❌ Error updating progress:', err.message);
-    res.status(500).json({ success: false, error: "Server error." });
+    console.error('❌ Error updating anagram progress:', err.message);
+    return res.status(500).json({ success: false, error: 'Server error updating anagram progress.' });
+  }
+};
+
+// GET /api/users/progress/anagram/summary
+const getAnagramSummary = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('anagramStats').lean();
+    if (!user) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const summary = user.anagramStats || {
+      totalSetsCompleted: 0,
+      bestAccuracy: 0,
+      avgAccuracy: 0,
+      bestAvgTimeMs: null,
+      avgTimeMs: null,
+    };
+
+    return res.status(200).json({ success: true, summary });
+  } catch (err) {
+    console.error('❌ getAnagramSummary error:', err);
+    return res.status(500).json({ success: false, error: 'Server error.' });
   }
 };
 
 module.exports = {
-    registerUser,
-    loginUser,
-    refreshTokenHandler,
-    logoutUser,
-    getUserProfile,
-    updateUserProfile,
-    deleteUser, 
-    getAllUsers,
-    updateAnagramProgress
+  registerUser,
+  loginUser,
+  refreshTokenHandler,
+  logoutUser,
+  getUserProfile,
+  updateUserProfile,
+  deleteUser,
+  getAllUsers,
+  updateAnagramProgress,
+  getAnagramSummary,
 };
+
+
+

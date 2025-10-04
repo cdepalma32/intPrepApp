@@ -9,7 +9,8 @@ const {
   updateUserProfile,
   deleteUser,
   getAllUsers,
-  updateAnagramProgress
+  updateAnagramProgress,
+  getAnagramSummary,
 } = require('../../controllers/userController');
 const { verifyToken, validateSignup, requireAdmin } = require('../../middleware/authMiddleware');
 
@@ -43,8 +44,9 @@ router.get('/profile', verifyToken, getUserProfile);
 // PUT /api/users/profile - Update user profile (Protected)
 router.put('/profile', verifyToken, updateUserProfile);
 
-// PATCH /api/users/progress/anagram - Update anagram progress (Protected)
+// PROGRESS ROUTES (Protected)
 router.patch('/progress/anagram', verifyToken, updateAnagramProgress);
+router.get('/progress/anagram/summary', verifyToken, getAnagramSummary);
 
 // DELETE /api/users/:userId - Delete user account (Protected)
 router.delete('/:userId', verifyToken, deleteUser);
