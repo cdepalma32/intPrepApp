@@ -40,44 +40,40 @@ const validateSignup = [
 
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {
-    try {
-      console.log("Entered verifyToken middleware.");
-      console.log("Full Request Headers:", req.headers);
-  
-      const authHeader = req.headers.authorization;
-      console.log("Authorization Header:", authHeader);
-  
-      if (!authHeader) {
-        console.error("Missing Authorization Header");
-        return res.status(401).json({ message: 'Authorization header missing.' });
-      }
-  
-      const parts = authHeader.split(" ");
-      console.log("Token Parts:", parts);
-  
-      if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-        console.error("Incorrect token format");
-        return res.status(401).json({ message: 'Token format must be: Bearer <token>.' });
-      }
-  
-      const token = parts[1].trim();
-      console.log("Token to verify:", token);
-      console.log("Using secret:", process.env.JWT_SECRET);
-  
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Token Decoded:", decoded);
-      req.user = decoded;
-      next();
-    } catch (err) {
-      console.error("Error in verifyToken:", err);
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ message: 'Token has expired' });
-      } else if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({ message: 'Token is invalid' });
-      }
-      return res.status(403).json({ message: ' Invalid or expired token' });
+  try {
+    const authHeader = req.headers.authorization || '';
+
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token format must be: Bearer <token>.' });
     }
-  };
+
+    const token = authHeader.slice(7).trim();
+
+    // Verify JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Normalize into a consistent shape for controllers
+    req.user = {
+      id: decoded.sub || decoded.id || decoded._id || null, // ← prefer sub
+      username: decoded.username,
+      role: decoded.role,
+    };
+
+    if (!req.user.id) {
+      return res.status(401).json({ message: 'Token missing subject (id).' });
+    }
+
+    return next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token has expired' });
+    }
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Token is invalid' });
+    }
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
   
 
     // Admin authentication

@@ -12,6 +12,6 @@ const apiRoutes = require('./api');
 router.use('/protected', protectedRoutes);
 
 // main api routes
-router.use('/', apiRoutes);
+router.use('/api', apiRoutes);
 
 module.exports = router;

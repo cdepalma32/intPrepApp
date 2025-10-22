@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from '@/hooks/useAuth';
+import api from "@/lib/http";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -11,46 +12,42 @@ import {
 import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
-  const { accessToken } = useAuth(); // switched from just user to use accessToken
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null); // new state to hold updated user data
+  const [profile, setProfile] = useState(null);
+
   const randomEmoji = React.useMemo(() => {
-  const emojis = ["👋", "🚀", "💪", "🤓", "🌟", "🧠", "🎯", "⚡"];
-  return emojis[Math.floor(Math.random() * emojis.length)];
-}, []);
+    const emojis = ["👋", "🚀", "💪", "🤓", "🌟", "🧠", "🎯", "⚡"];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  }, []);
 
   // Fetch updated profile with progress
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/users/profile", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setProfile(data); 
+        // Interceptor adds Authorization header; 401s trigger refresh+retry
+        const { data } = await api.get('/users/profile');
+        setProfile(data);
       } catch (err) {
-        console.error("Error loading profile:", err.message);
+        console.error("Error loading profile:", err?.response?.data?.message || err.message);
       }
     };
-
     fetchProfile();
-  }, [accessToken]); 
+  }, [accessToken]); // re-run if token changes
 
   // Extract dynamic progress data
-  const anagramsCompleted = profile?.anagramProgress?.filter(p => p.roundCompleted).length || 0;
+  const anagramsCompleted =
+    profile?.anagramProgress?.filter((p) => p.roundCompleted).length || 0;
   const interviewQsAnswered = profile?.reviewedQuestions?.length || 0;
 
- return (
+  return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
-      {/*  Dynamic username */}
+      {/* Dynamic username */}
       <h1 className="text-3xl font-bold text-center">
         {randomEmoji} Welcome back, {profile?.username || "User"}!
       </h1>
 
-      {/*  Dynamic Progress */}
+      {/* Dynamic Progress */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg text-center">📊 Your Progress</CardTitle>
@@ -58,11 +55,11 @@ const Dashboard = () => {
         <CardContent className="flex justify-center gap-10 text-center">
           <div>
             <p className="text-muted-foreground">Anagrams Completed</p>
-            <p className="text-xl font-semibold">{anagramsCompleted}</p> 
+            <p className="text-xl font-semibold">{anagramsCompleted}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Interview Qs Answered</p>
-            <p className="text-xl font-semibold">{interviewQsAnswered}</p> 
+            <p className="text-xl font-semibold">{interviewQsAnswered}</p>
           </div>
         </CardContent>
       </Card>

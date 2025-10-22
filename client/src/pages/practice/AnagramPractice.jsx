@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import api from '@/lib/http';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -12,7 +13,7 @@ const shuffleArray = (array) => {
 // Scramble while preserving original word lengths (for multi-word anagrams)
 const scrambleWithWordLengths = (phrase) => {
   const words = phrase.trim().split(' ');
-  const lengths = words.map(word => word.length);
+  const lengths = words.map((word) => word.length);
   const allLetters = phrase.replace(/\s/g, '').split('');
   const shuffled = shuffleArray(allLetters);
 
@@ -31,13 +32,14 @@ const getWordLengthHint = (solution) => {
   return solution
     .trim()
     .split(' ')
-    .map(word => '_'.repeat(word.length))
+    .map((word) => '_'.repeat(word.length))
     .join('   ');
 };
 
 const AnagramPractice = () => {
-  const { user, getValidAccessToken } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
   const [anagrams, setAnagrams] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState('');
@@ -47,27 +49,23 @@ const AnagramPractice = () => {
   const [displayScramble, setDisplayScramble] = useState('');
   const [hintPlaceholder, setHintPlaceholder] = useState('');
   const [missedCount, setMissedCount] = useState(0);
+  const [roundSaved, setRoundSaved] = useState(false); // prevents duplicate saves
 
   const totalProgress = correctCount + missedCount;
   const currentAnagram = anagrams[currentIndex];
 
-  const [roundSaved, setRoundSaved] = useState(false); // prevents duplicate saves
-
-
-    // Auto-submit progress when 25 attempts are reached
+  // Auto-submit progress when 25 attempts are reached
   useEffect(() => {
     if (totalProgress === 25 && !roundSaved) {
-      console.log("🎯 Total progress hit 25! Submitting round progress.");
+      console.log('🎯 Total progress hit 25! Submitting round progress.');
       saveProgress();
       setRoundSaved(true);
     }
-  }, [totalProgress, roundSaved]); // Save when totalProgress hits 25
+  }, [totalProgress, roundSaved]);
 
-   // Save progress to backend
+  // Save progress to backend
   const saveProgress = async () => {
     try {
-      const token = await getValidAccessToken();
-
       const payload = {
         date: new Date().toISOString().split('T')[0],
         topic: currentAnagram?.topic?.name || 'General',
@@ -76,32 +74,21 @@ const AnagramPractice = () => {
         roundCompleted: totalProgress >= 25, // round complete logic
       };
 
-      const response = await fetch('http://localhost:5000/api/users/progress/anagram', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,   // uses valid token here
-      },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('Progress sent to server:', payload);
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update progress');
+      const { data } = await api.patch('/users/progress/anagram', payload);
       console.log('✅ Progress saved:', data);
     } catch (error) {
-      console.error('❌ Error saving progress:', error.message);
+      console.error('❌ Error saving progress:', error?.response?.data?.message || error.message);
     }
   };
 
-
-   useEffect(() => {
+  // Load anagrams
+  useEffect(() => {
+    let alive = true;
     const fetchAnagrams = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/anagrams');
-        if (!res.ok) throw new Error('Network response was not ok');
-        const data = await res.json();
+        const { data } = await api.get('/anagrams');
+        if (!alive) return;
+
         const shuffled = shuffleArray(data);
         setAnagrams(shuffled);
 
@@ -112,13 +99,17 @@ const AnagramPractice = () => {
         }
       } catch (err) {
         console.error('Failed to load anagrams', err);
-        setFeedback('Unable to load anagram questions.');
+        if (alive) setFeedback('Unable to load anagram questions.');
       }
     };
 
     fetchAnagrams();
+    return () => {
+      alive = false; // avoid state updates after unmount
+    };
   }, []);
 
+  // Redirect after finishing the round or list
   useEffect(() => {
     if (anagrams.length && (currentIndex >= anagrams.length || totalProgress >= 25)) {
       const timer = setTimeout(() => navigate('/dashboard'), 5000);
@@ -140,10 +131,10 @@ const AnagramPractice = () => {
 
     if (normalizedInput === normalizedSolution) {
       setFeedback('Correct!');
-      setCorrectCount(prev => prev + 1);
+      setCorrectCount((prev) => prev + 1);
       setInput('');
       setAttempts(0);
-      saveProgress();   //Save on correct answer
+      saveProgress(); // Save on correct answer
 
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -159,8 +150,8 @@ const AnagramPractice = () => {
 
       if (nextAttempt >= 4) {
         setFeedback(`The correct answer was: ${currentAnagram.solution}`);
-        setMissedCount(prev => prev + 1);
-        saveProgress();    //Save after incorrect answer
+        setMissedCount((prev) => prev + 1);
+        saveProgress(); // Save after incorrect answer
 
         setTimeout(() => {
           const nextIndex = currentIndex + 1;
@@ -190,10 +181,10 @@ const AnagramPractice = () => {
 
   if (anagrams.length && (currentIndex >= anagrams.length || totalProgress >= 25)) {
     let message = '';
-    if (correctCount >= 20) message = "🔥 Incredible work!";
-    else if (correctCount >= 15) message = "💪 Great job!";
-    else if (correctCount >= 10) message = "👍 Nice effort!";
-    else message = "Keep practicing — you’ll get there!";
+    if (correctCount >= 20) message = '🔥 Incredible work!';
+    else if (correctCount >= 15) message = '💪 Great job!';
+    else if (correctCount >= 10) message = '👍 Nice effort!';
+    else message = 'Keep practicing — you’ll get there!';
 
     return (
       <div className="text-center p-6">
@@ -201,9 +192,7 @@ const AnagramPractice = () => {
         <p className="text-muted-foreground">
           You solved {correctCount} / {totalProgress} correctly
         </p>
-        <p className="text-sm text-gray-500 mt-4">
-          Redirecting to dashboard in 5 seconds…
-        </p>
+        <p className="text-sm text-gray-500 mt-4">Redirecting to dashboard in 5 seconds…</p>
       </div>
     );
   }
@@ -249,14 +238,14 @@ const AnagramPractice = () => {
             />
           </div>
 
-            <div className="flex justify-center">
+          <div className="flex justify-center">
             <Button onClick={checkAnswer}>
-                {attempts === 0 && 'Scramble 1/4'}
-                {attempts === 1 && 'Scramble 2/4'}
-                {attempts === 2 && 'Scramble 3/4'}
-                {attempts >= 3 && 'Unsure, give me the answer'}
+              {attempts === 0 && 'Scramble 1/4'}
+              {attempts === 1 && 'Scramble 2/4'}
+              {attempts === 2 && 'Scramble 3/4'}
+              {attempts >= 3 && 'Unsure, give me the answer'}
             </Button>
-            </div>
+          </div>
 
           {feedback && <p className="text-center">{feedback}</p>}
         </CardContent>

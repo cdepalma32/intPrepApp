@@ -7,6 +7,7 @@ const anagramRoutes = require('../api/anagramRoutes');
 const interviewRoutes = require('../api/interviewRoutes');
 
 // add route models
+router.get('/ping', (req, res) => res.json({ ok: true }));
 router.use('/users', userRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/topics', topicRoutes);

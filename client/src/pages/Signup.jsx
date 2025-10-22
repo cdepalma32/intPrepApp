@@ -1,20 +1,7 @@
-// import React from 'react';
-
-// const Signup = () => {
-//   return (
-//     <div>
-//       <h2>Sign Up</h2>
-//       {/* Signup form will go here */}
-//     </div>
-//   );
-// };
-
-// export default Signup;
-
-
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import AuthContext from "@/context/AuthContext";
+import { useAuth } from '@/hooks/useAuth';
+import api from "@/lib/http";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +15,7 @@ const passwordRegex =
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
 
   const [username, setUsername] = useState("");
   const [email, setEmail]       = useState("");
@@ -56,17 +43,15 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/users/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // keep parity w/ your login flow
-        body: JSON.stringify({ username, email, password }),
+
+      // Use shared axios client (handles baseURL '/api', JSON, withCredentials)
+      const { data } = await api.post("/users/signup", {
+        username,
+        email,
+        password,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || "Signup failed");
-
-      // same AuthContext flow as Login.jsx
+      // Store tokens + user in context/storage
       login({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
@@ -76,7 +61,11 @@ const Signup = () => {
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      setError(err.message || "Signup failed");
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Signup failed";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -84,7 +73,9 @@ const Signup = () => {
 
   return (
     <div className="max-w-md mx-auto mt-16 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold text-center mb-4">Create your IntPrepApp account</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">
+        Create your IntPrepApp account
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username */}
@@ -96,6 +87,7 @@ const Signup = () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
+            required
           />
         </div>
 
@@ -109,6 +101,7 @@ const Signup = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
           />
         </div>
 
@@ -122,6 +115,7 @@ const Signup = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
+            required
           />
           <p className="text-xs text-muted-foreground mt-1">
             Special characters like !@#$%^&*() are allowed.
@@ -138,7 +132,9 @@ const Signup = () => {
 
         <p className="text-sm text-center mt-2">
           Already have an account?{" "}
-          <Link to="/login" className="underline">Log in</Link>
+          <Link to="/login" className="underline">
+            Log in
+          </Link>
         </p>
       </form>
     </div>

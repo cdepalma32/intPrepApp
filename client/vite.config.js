@@ -1,21 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
-import { fileURLToPath } from 'url'
 
-// Fix for __dirname in ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
+// Vite dev server config with API proxy + alias
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': '/src',         // so "@/lib/http" etc. resolve
     },
   },
   server: {
+    port: 5173,
+    open: true,
     proxy: {
+      // Anything starting with /api goes to your Express server on :5000
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,

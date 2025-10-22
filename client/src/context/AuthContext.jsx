@@ -1,89 +1,129 @@
-import React, { createContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import { authBridge } from '@/context/authBridge';
 
 // Create context
-const AuthContext = createContext();
+const AuthContext = createContext(null);
+
+function decodeJwtExp(token) {
+  try {
+    const [, payloadBase64] = token.split('.');
+    const b64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/'); // base64url → base64
+    const json = atob(b64);
+    const payload = JSON.parse(json);
+    return payload?.exp ? payload.exp * 1000 : null; // ms
+  } catch {
+    return null;
+  }
+}
 
 // Create a provider component
 export const AuthProvider = ({ children }) => {
-    const [accessToken, setAccessToken] = useState(null);
-    const [user, setUser ] = useState(null); // can hold name, email, role, token, etc.
+  const [accessToken, setAccessToken] = useState(null);
+  const [user, setUser] = useState(null); // name, email, role, etc.
 
-    // Attempt to auto-refresh token on app load
-    useEffect(() => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken && !accessToken) {
-            refreshAccessToken(refreshToken);
-        }
-    }, []);
+  // Bridge init so non-React modules (http.js) can access token safely
+  useEffect(() => {
+    authBridge.init({
+      getAccessToken: () => accessToken,
+      setAccessToken: (t) => setAccessToken(t),
+      clear: () => logout(),
+    });
+  }, [accessToken]);
 
-    // Request new access/refresh token pair from backend
-    const refreshAccessToken = async (token = null) => {
-        try {
-            const storedRefreshToken = token || localStorage.getItem('refreshToken');
-            if (!storedRefreshToken) return;
+  // Attempt to auto-refresh token on app load
+  useEffect(() => {
+    const rt = localStorage.getItem('refreshToken');
+    if (rt && !accessToken) {
+      refreshAccessToken(rt);
+    }
+  }, []);
 
-            const res = await fetch('/api/users/refresh', {
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ refreshToken: storedRefreshToken }),
-            });
+  // Request new access/refresh token pair from backend
+  const refreshAccessToken = async (token = null) => {
+    try {
+      const storedRefreshToken = token || localStorage.getItem('refreshToken');
+      if (!storedRefreshToken) return null;
 
-            if (res.ok) {
-                const { accessToken, refreshToken, user } = await res.json();
-                setAccessToken(accessToken);
-                setUser(user);
-                localStorage.setItem('refreshToken', refreshToken); // rotate token
-            } else {
-                logout();
-            }
-            } catch (err) {
-                console.error('[Auto Token Refresh Failed]', err);
-                logout();
-            }
-        };
-    
-        const getValidAccessToken = async () => {
-            if (!accessToken) {
-                await refreshAccessToken();
-                return accessToken;
-            }
+      const res = await fetch('/api/users/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // ok if you later move refresh to cookies
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      });
 
-            try{
-                const [, payloadBase64] = accessToken.split('.');
-                const payload = JSON.parse(atob(payloadBase64));
-                const isExpired = Date.now() >= payload.exp * 1000;
+      if (!res.ok) {
+        logout();
+        return null;
+      }
 
-                if (isExpired) {
-                    await refreshAccessToken();
-                    return accessToken;
-                }
+      const { accessToken: newAT, refreshToken: newRT, user: userObj } = await res.json();
+      setAccessToken(newAT);
+      setUser(userObj || null);
+      if (newRT) localStorage.setItem('refreshToken', newRT); // rotate token
+      return newAT; // return the fresh token for immediate use
+    } catch (err) {
+      console.error('[Auto Token Refresh Failed]', err);
+      logout();
+      return null;
+    }
+  };
 
-                return accessToken;
-            } catch (err) {
-                console.error(`[Token Decode Error]`, err);
-                await refreshAccessToken;
-                return accessToken;
-            }
-        };    
+  const getValidAccessToken = async () => {
+    // No token yet → try refresh
+    if (!accessToken) {
+      const fresh = await refreshAccessToken();
+      return fresh;
+    }
 
-        const login = ({ accessToken, refreshToken, user }) => {
-            setAccessToken(accessToken);
-            setUser(user);
-            localStorage.setItem('refreshToken', refreshToken);
-        };
+    // Has token → check expiry; refresh if expired
+    const expMs = decodeJwtExp(accessToken);
+    const isExpired = expMs ? Date.now() >= expMs : false;
 
-    // Logout function
-    const logout = () => {
-        setAccessToken(null);
-        setUser(null);
-        localStorage.removeItem('refreshToken');
-    };
+    if (isExpired) {
+      const fresh = await refreshAccessToken();
+      return fresh;
+    }
+    return accessToken;
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, accessToken, login, logout, refreshAccessToken, getValidAccessToken }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const login = ({ accessToken: at, refreshToken: rt, user: userObj }) => {
+    setAccessToken(at);
+    setUser(userObj || null);
+    if (rt) localStorage.setItem('refreshToken', rt);
+  };
+
+  // Logout function
+  const logout = () => {
+    setAccessToken(null);
+    setUser(null);
+    localStorage.removeItem('refreshToken');
+  };
+
+/* eslint-disable react-hooks/exhaustive-deps */
+const value = useMemo(() => ({
+  user,
+  accessToken,
+  login,
+  logout,
+  refreshAccessToken,
+  getValidAccessToken,
+}), [user, accessToken]);
+/* eslint-enable react-hooks/exhaustive-deps */
+
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
 
 export default AuthContext;

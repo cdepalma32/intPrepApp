@@ -38,8 +38,17 @@ router.use('/logout', (req, res, next) => {
 router.post('/logout', logoutUser);
 
 // AUTHENTICATED ROUTES
+
 // GET /api/users/profile - Get user profile (Protected)
-router.get('/profile', verifyToken, getUserProfile);
+// router.get('/profile', verifyToken, getUserProfile);
+router.get(
+  '/profile',
+  (req, res, next) => { console.log('HIT /api/users/profile'); next(); },
+  verifyToken,
+  getUserProfile
+);
+
+
 
 // PUT /api/users/profile - Update user profile (Protected)
 router.put('/profile', verifyToken, updateUserProfile);

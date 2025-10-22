@@ -3,8 +3,9 @@ const jwt = require("jsonwebtoken");
 
 const generateExpiredToken = () => {
     const payload = {
-        id: "67cc89d1878b385935f4a360", // Use a real user ID
-        email: "Winnerdub@example.com"
+  sub: userIdString,
+  username: '...',
+  role: 'user',
     };
 
     // Generate an expired token (-10 minutes)
