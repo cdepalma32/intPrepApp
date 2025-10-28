@@ -2,6 +2,7 @@
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { authBridge } from '@/context/authBridge';
+import { useNavigate } from 'react-router-dom';
 
 // Create context
 const AuthContext = createContext(null);
@@ -22,13 +23,14 @@ function decodeJwtExp(token) {
 export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null); // name, email, role, etc.
+  const navigate = useNavigate();
 
   // Bridge init so non-React modules (http.js) can access token safely
   useEffect(() => {
     authBridge.init({
       getAccessToken: () => accessToken,
       setAccessToken: (t) => setAccessToken(t),
-      clear: () => logout(),
+      clear: () => logout(), // will redirect
     });
   }, [accessToken]);
 
@@ -49,12 +51,12 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch('/api/users/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // ok if you later move refresh to cookies
+        credentials: 'include', // ok if move refresh to cookies later
         body: JSON.stringify({ refreshToken: storedRefreshToken }),
       });
 
       if (!res.ok) {
-        logout();
+        logout(); // will redirect
         return null;
       }
 
@@ -99,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     setAccessToken(null);
     setUser(null);
     localStorage.removeItem('refreshToken');
+    navigate('/login', { replace: true }); // redirect so no 404 on protected routes
   };
 
 /* eslint-disable react-hooks/exhaustive-deps */

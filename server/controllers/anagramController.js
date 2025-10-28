@@ -44,7 +44,6 @@ const submitAnagram = async (req, res) => {
         const isCorrect = anagram.correctAnswer === answer.toLowerCase();
 
         if (isCorrect) {
-            // assuming you have a user model and method to track progress
             await User.updateOne(
                 { _id: userId },
                 { $inc: { score:10 } } // Example: increment user score

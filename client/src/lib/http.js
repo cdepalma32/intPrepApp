@@ -1,89 +1,103 @@
-import axios from 'axios';
-import { authBridge } from '@/context/authBridge';
+import axios from "axios";
+import { authBridge } from "@/context/authBridge";
 
 const api = axios.create({
-  baseURL: '/api',
-  withCredentials: true, // safe to keep on; helps if you move to cookie refresh
+  baseURL: "/api",
+  withCredentials: true,
 });
 
-let isRefreshing = null;      // Promise<string|null> | null
-let waiters = [];             // queued resolvers
-
-function flushWaiters(token) {
-  waiters.forEach((resolve) => resolve(token));
-  waiters = [];
-}
-
+// ---- Attach Authorization on every request
 api.interceptors.request.use((config) => {
   const at = authBridge.getAccessToken();
   if (at) {
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${at}`;
   }
   return config;
 });
 
+// ---- Single-flight refresh state
+let refreshPromise = null;
+let subscribers = [];
+
+const subscribe = (fn) => subscribers.push(fn);
+const notifyAll = (token) => {
+  subscribers.forEach((fn) => fn(token));
+  subscribers = [];
+};
+
+const runRefresh = async () => {
+  const rt = localStorage.getItem("refreshToken");
+  if (!rt) throw new Error("No refresh token");
+
+  const r = await axios.post(
+    "/api/users/refresh",
+    { refreshToken: rt },
+    { withCredentials: true }
+  );
+
+  const { accessToken, refreshToken } = r.data || {};
+  if (!accessToken) throw new Error("No access token in refresh response");
+
+  authBridge.setAccessToken(accessToken);
+  if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+
+  return accessToken;
+};
+
+// ---- 401 handler with retry-once
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    const { config, response } = error || {};
-    const is401 = response?.status === 401;
+    const { response, config } = error || {};
+    const status = response?.status;
+    const url = config?.url || "";
     const alreadyRetried = config?._retried;
-    const isRefreshCall = config?.url?.includes('/users/refresh');
 
-    if (!is401 || alreadyRetried || isRefreshCall) {
+    // If not a 401, or this is the refresh call itself, or we've already retried → pass through
+    if (status !== 401 || url.includes("/users/refresh") || alreadyRetried) {
       return Promise.reject(error);
     }
 
-    // No refresh token → logout
-    const rt = localStorage.getItem('refreshToken');
-    if (!rt) {
-      authBridge.clear();
-      window.location.assign('/login');
-      return Promise.reject(error);
+    // Kick off a single refresh if not in progress
+    if (!refreshPromise) {
+      refreshPromise = runRefresh()
+        .then((token) => {
+          notifyAll(token);
+          return token;
+        })
+        .catch((e) => {
+          notifyAll(null);
+          throw e;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
     }
 
-    // Single-flight refresh
-    if (!isRefreshing) {
-      isRefreshing = (async () => {
-        try {
-          const r = await axios.post(
-            '/api/users/refresh',
-            { refreshToken: rt },
-            { withCredentials: true }
-          );
-          const { accessToken, refreshToken } = r.data || {};
-          if (!accessToken) throw new Error('No access token returned');
-          authBridge.setAccessToken(accessToken);
-          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-          return accessToken;
-        } catch {
-          return null;
-        } finally {
-          // We resolve waiters after this promise settles
+    // Wait for refresh result, then retry (or logout on failure)
+    return new Promise((resolve, reject) => {
+      subscribe((newToken) => {
+        if (!newToken) {
+          // refresh failed → hard logout
+          authBridge.clear();
+          localStorage.removeItem("refreshToken");
+          // adjust if route is /signin
+          window.location.assign("/signin");
+          return reject(error);
         }
-      })();
-    }
-
-    const newToken = await new Promise((resolve) => {
-      waiters.push(resolve);
-      isRefreshing.finally(async () => {
-        const token = await isRefreshing.catch(() => null);
-        flushWaiters(token);
-        isRefreshing = null;
+        try {
+          const retryConfig = {
+            ...config,
+            _retried: true,
+            headers: { ...(config.headers || {}), Authorization: `Bearer ${newToken}` },
+          };
+          resolve(api.request(retryConfig));
+        } catch (e) {
+          reject(e);
+        }
       });
     });
-
-    if (!newToken) {
-      authBridge.clear();
-      localStorage.removeItem('refreshToken');
-      window.location.assign('/login'); 
-      return Promise.reject(error);
-    }
-
-    // Retry once with fresh token
-    config._retried = true;
-    config.headers.Authorization = `Bearer ${newToken}`;
-    return api.request(config);
   }
 );
 

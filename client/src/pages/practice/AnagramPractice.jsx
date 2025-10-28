@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/http';
@@ -6,35 +6,31 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 // Utility: Shuffle array
-const shuffleArray = (array) => {
-  return [...array].sort(() => Math.random() - 0.5);
-};
+const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
 // Scramble while preserving original word lengths (for multi-word anagrams)
 const scrambleWithWordLengths = (phrase) => {
   const words = phrase.trim().split(' ');
-  const lengths = words.map((word) => word.length);
+  const lengths = words.map((w) => w.length);
   const allLetters = phrase.replace(/\s/g, '').split('');
   const shuffled = shuffleArray(allLetters);
 
-  const scrambledWords = [];
+  const out = [];
   let i = 0;
   for (const len of lengths) {
-    scrambledWords.push(shuffled.slice(i, i + len).join(''));
+    out.push(shuffled.slice(i, i + len).join(''));
     i += len;
   }
-
-  return scrambledWords.join(' ');
+  return out.join(' ');
 };
 
 // Generate hint like "________   ___"
-const getWordLengthHint = (solution) => {
-  return solution
+const getWordLengthHint = (solution) =>
+  solution
     .trim()
     .split(' ')
-    .map((word) => '_'.repeat(word.length))
+    .map((w) => '_'.repeat(w.length))
     .join('   ');
-};
 
 const AnagramPractice = () => {
   const { user } = useAuth();
@@ -51,35 +47,48 @@ const AnagramPractice = () => {
   const [missedCount, setMissedCount] = useState(0);
   const [roundSaved, setRoundSaved] = useState(false); // prevents duplicate saves
 
+  // Track the round start and last seen topic for the payload
+  const sessionStartRef = useRef(Date.now());
+  const lastTopicRef = useRef('General');
+
   const totalProgress = correctCount + missedCount;
   const currentAnagram = anagrams[currentIndex];
+
+  // Keep lastTopicRef updated
+  useEffect(() => {
+    const t = currentAnagram?.topic?.name;
+    if (t) lastTopicRef.current = t;
+  }, [currentAnagram]);
+
+  // Save progress to backend ONCE when the round is complete
+  const saveProgress = async () => {
+    if (roundSaved) return;
+    try {
+      const payload = {
+        topic: lastTopicRef.current || 'Mixed',
+        startedAt: new Date(sessionStartRef.current).toISOString(),
+        finishedAt: new Date().toISOString(),
+        totalAttempted: totalProgress,
+        totalCorrect: correctCount,
+      };
+      const { data } = await api.patch('/users/progress/anagram', payload);
+      console.log('✅ Progress saved:', data);
+      setRoundSaved(true);
+    } catch (error) {
+      console.error(
+        '❌ Error saving progress:',
+        error?.response?.data?.error || error?.response?.data?.message || error.message
+      );
+    }
+  };
 
   // Auto-submit progress when 25 attempts are reached
   useEffect(() => {
     if (totalProgress === 25 && !roundSaved) {
       console.log('🎯 Total progress hit 25! Submitting round progress.');
       saveProgress();
-      setRoundSaved(true);
     }
-  }, [totalProgress, roundSaved]);
-
-  // Save progress to backend
-  const saveProgress = async () => {
-    try {
-      const payload = {
-        date: new Date().toISOString().split('T')[0],
-        topic: currentAnagram?.topic?.name || 'General',
-        totalCorrect: correctCount,
-        totalAttempted: totalProgress,
-        roundCompleted: totalProgress >= 25, // round complete logic
-      };
-
-      const { data } = await api.patch('/users/progress/anagram', payload);
-      console.log('✅ Progress saved:', data);
-    } catch (error) {
-      console.error('❌ Error saving progress:', error?.response?.data?.message || error.message);
-    }
-  };
+  }, [totalProgress, roundSaved]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load anagrams
   useEffect(() => {
@@ -96,6 +105,8 @@ const AnagramPractice = () => {
           const first = shuffled[0].solution;
           setDisplayScramble(scrambleWithWordLengths(first));
           setHintPlaceholder(getWordLengthHint(first));
+          sessionStartRef.current = Date.now(); // set round start when questions load
+          lastTopicRef.current = shuffled[0]?.topic?.name || 'General';
         }
       } catch (err) {
         console.error('Failed to load anagrams', err);
@@ -105,7 +116,7 @@ const AnagramPractice = () => {
 
     fetchAnagrams();
     return () => {
-      alive = false; // avoid state updates after unmount
+      alive = false;
     };
   }, []);
 
@@ -118,7 +129,7 @@ const AnagramPractice = () => {
   }, [anagrams, currentIndex, totalProgress, navigate]);
 
   const checkAnswer = () => {
-    if (!currentAnagram || !currentAnagram.solution) return;
+    if (!currentAnagram?.solution) return;
 
     if (totalProgress >= 25) {
       setFeedback("✅ You've reached the max for this round!");
@@ -131,10 +142,9 @@ const AnagramPractice = () => {
 
     if (normalizedInput === normalizedSolution) {
       setFeedback('Correct!');
-      setCorrectCount((prev) => prev + 1);
+      setCorrectCount((p) => p + 1);
       setInput('');
       setAttempts(0);
-      saveProgress(); // Save on correct answer
 
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -150,8 +160,7 @@ const AnagramPractice = () => {
 
       if (nextAttempt >= 4) {
         setFeedback(`The correct answer was: ${currentAnagram.solution}`);
-        setMissedCount((prev) => prev + 1);
-        saveProgress(); // Save after incorrect answer
+        setMissedCount((p) => p + 1);
 
         setTimeout(() => {
           const nextIndex = currentIndex + 1;
@@ -167,18 +176,17 @@ const AnagramPractice = () => {
         }, 2000);
       } else {
         setFeedback(`Try again! (${nextAttempt}/4)`);
-
         let newScramble = scrambleWithWordLengths(currentAnagram.solution);
         while (newScramble === currentAnagram.solution) {
           newScramble = scrambleWithWordLengths(currentAnagram.solution);
         }
-
         setDisplayScramble(newScramble);
         setHintPlaceholder(getWordLengthHint(currentAnagram.solution));
       }
     }
   };
 
+  // End-of-round screen
   if (anagrams.length && (currentIndex >= anagrams.length || totalProgress >= 25)) {
     let message = '';
     if (correctCount >= 20) message = '🔥 Incredible work!';

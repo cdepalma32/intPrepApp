@@ -11,10 +11,11 @@ const {
   getAllUsers,
   updateAnagramProgress,
   getAnagramSummary,
+  listRecentAnagramSessions,
 } = require('../../controllers/userController');
 const { verifyToken, validateSignup, requireAdmin } = require('../../middleware/authMiddleware');
 
-// POST /api/users/signup - Register a new User
+// POST /api/users/signup
 router.post('/signup', validateSignup, registerUser); // Handles user registration
 
 // POST /api/users/signin - Login a user
@@ -49,13 +50,13 @@ router.get(
 );
 
 
-
 // PUT /api/users/profile - Update user profile (Protected)
 router.put('/profile', verifyToken, updateUserProfile);
 
 // PROGRESS ROUTES (Protected)
 router.patch('/progress/anagram', verifyToken, updateAnagramProgress);
 router.get('/progress/anagram/summary', verifyToken, getAnagramSummary);
+router.get('/progress/anagram/sessions', verifyToken, listRecentAnagramSessions);
 
 // DELETE /api/users/:userId - Delete user account (Protected)
 router.delete('/:userId', verifyToken, deleteUser);

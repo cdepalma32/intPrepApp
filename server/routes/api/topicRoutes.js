@@ -25,6 +25,6 @@ router.delete('/:id', verifyToken, requireAdmin, deleteTopic);
 
     // METHOD RESTRICTION HANDLER (optional)
 
-// Could add router.all() catch-alls like you did in userRoutes if needed
+// Could add router.all() catch-alls like in userRoutes if needed
 
 module.exports = router;

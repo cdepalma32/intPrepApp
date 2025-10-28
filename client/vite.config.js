@@ -13,7 +13,7 @@ export default defineConfig({
     port: 5173,
     open: true,
     proxy: {
-      // Anything starting with /api goes to your Express server on :5000
+      // Anything starting with /api goes to Express server on :5000
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,

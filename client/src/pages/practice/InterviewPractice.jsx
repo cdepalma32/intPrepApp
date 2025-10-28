@@ -5,7 +5,7 @@ const InterviewPractice = () => {
   return (
     <div>
       <h2>Interview Practice</h2>
-      {/* Add your content here */}
+      {/* Add content here */}
     </div>
   );
 };

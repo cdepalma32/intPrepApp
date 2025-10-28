@@ -8,7 +8,7 @@ const {
 } = require('../utils/auth');
 
 /**
- * POST /api/users/register  (you mounted this as /api/users/signup)
+ * POST /api/users/signup
  */
 const registerUser = async (req, res) => {
   try {
@@ -64,7 +64,7 @@ const registerUser = async (req, res) => {
 };
 
 /**
- * POST /api/users/login  (you mounted this as /api/users/signin)
+ * POST /api/users/login  (mounted as /api/users/signin)
  */
 const loginUser = async (req, res) => {
   try {
@@ -280,7 +280,7 @@ const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Only allow self-delete (unless you add admin override)
+    // Only allow self-delete (unless adding admin override)
     if (req.user.id !== userId) {
       return res.status(403).json({ message: 'Forbidden: You can only delete your own account.' });
     }
@@ -402,6 +402,62 @@ const getAnagramSummary = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/users/progress/anagram/sessions?limit=3  (Protected)
+ * Returns recent anagram sessions with minimal fields.
+ */
+const listRecentAnagramSessions = async (req, res) => {
+  try {
+    const MAX_LIMIT = 10;
+    let limit = parseInt(req.query.limit, 10);
+    if (!Number.isFinite(limit) || limit <= 0) limit = 3;
+    if (limit > MAX_LIMIT) limit = MAX_LIMIT;
+
+    const user = await User.findById(req.user.id)
+      .select('anagramSessions')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found.' });
+    }
+
+    const sessions = (user.anagramSessions || [])
+      .filter(s => s && s.finishedAt) // only sessions that are completed
+      .sort((a, b) => new Date(b.finishedAt) - new Date(a.finishedAt))
+      .slice(0, limit)
+      .map(s => {
+        const totalCorrect = s.totalCorrect ?? 0;
+        const totalAttempted = s.totalAttempted ?? 0;
+
+        // prefer stored accuracyPct/durationMs; fallback compute if needed
+        const accuracyPct = (typeof s.accuracyPct === 'number')
+          ? s.accuracyPct
+          : (totalAttempted > 0 ? totalCorrect / totalAttempted : 0);
+
+        const durationMs = (typeof s.durationMs === 'number')
+          ? s.durationMs
+          : (s.startedAt && s.finishedAt
+              ? new Date(s.finishedAt) - new Date(s.startedAt)
+              : null);
+
+        return {
+          sessionId: s.sessionId,
+          topic: s.topic || null,
+          finishedAt: s.finishedAt,
+          totalCorrect,
+          totalAttempted,
+          accuracyPct,
+          durationMs,
+        };
+      });
+
+    return res.status(200).json({ success: true, sessions });
+  } catch (err) {
+    console.error('❌ listRecentAnagramSessions error:', err);
+    return res.status(500).json({ success: false, error: 'Server error.' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -413,4 +469,5 @@ module.exports = {
   deleteUser,
   updateAnagramProgress,
   getAnagramSummary,
+  listRecentAnagramSessions,
 };

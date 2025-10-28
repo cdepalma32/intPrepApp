@@ -8,8 +8,10 @@ import AnagramPractice from '../pages/practice/AnagramPractice';
 import InterviewPractice from '../pages/practice/InterviewPractice';
 import LeetcodePractice from '../pages/practice/LeetcodePractice';
 import FlashcardsPractice from '../pages/practice/FlashcardsPractice';
+import AnagramResults from '../pages/results/AnagramResults';
 import Topics from '../pages/Topics';
 import Dashboard from '../pages/Dashboard';
+import { Navigate } from "react-router-dom";
 import PrivateRoute from '../components/PrivateRoute'; 
 import TestNav from "../pages/TestNav";
 
@@ -22,6 +24,10 @@ const AppRoutes = () => (
       <Route index element={<Home />} />
       <Route path="login" element={<Login />} />
       <Route path="signup" element={<Signup />} />
+
+      {/* 🔁 Aliases for old/bookmarked paths */}
+      <Route path="signin" element={<Navigate to="/login" replace />} />
+      <Route path="register" element={<Navigate to="/signup" replace />} />
 
       {/* Protected Routes */}
       <Route
@@ -73,7 +79,40 @@ const AppRoutes = () => (
             <LeetcodePractice />
           </PrivateRoute>
         }
-      />
+/>
+        {/* Results Routes (Protected) */}
+<Route
+  path="results/anagram"
+  element={
+    <PrivateRoute>
+      <AnagramResults />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="results/interview"
+  element={
+    <PrivateRoute>
+      <div className="p-6">Interview results coming soon.</div>
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="results/flashcards"
+  element={
+    <PrivateRoute>
+      <div className="p-6">Flashcards results coming soon.</div>
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="results/leetcode"
+  element={
+    <PrivateRoute>
+      <div className="p-6">LeetCode results coming soon.</div>
+    </PrivateRoute>
+  }
+/>
 
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
